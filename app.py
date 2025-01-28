@@ -1,8 +1,11 @@
 # 1. app.py
 from flask import Flask, request, jsonify
+from dotenv import load_dotenv
 from datetime import datetime
 from supabase import create_client
 import os
+
+load_dotenv() # Load environment variables from .env file
 
 app = Flask(__name__)
 
