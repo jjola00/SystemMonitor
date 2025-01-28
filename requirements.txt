@@ -1,4 +1,5 @@
 Flask
 psutil
+supabase
 requests
 gunicorn
