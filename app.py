@@ -1,13 +1,15 @@
 # 1. app.py
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, timedelta
 from supabase import create_client
+from flask_cors import CORS
 import os
 
-load_dotenv() # Load environment variables from .env file
+load_dotenv()  # Load environment variables from .env file
 
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Initialize Supabase client
 supabase_url = os.getenv("SUPABASE_URL")
@@ -19,28 +21,16 @@ def save_metrics(data):
     response = supabase.table("metrics").insert(data).execute()
     return response
 
-def get_metrics_history():
-    response = supabase.table("metrics").select("*").execute()
+def get_metrics_history(start_date=None, end_date=None):
+    query = supabase.table("metrics").select("*")
+    
+    if start_date:
+        query = query.gte("timestamp", start_date)
+    if end_date:
+        query = query.lte("timestamp", end_date)
+    
+    response = query.execute()
     return response.data
-
-# Route to test inserting metrics and retrieving history
-@app.route('/test', methods=['GET'])
-def test_metrics():
-    # Test data for metrics
-    test_data = [
-        {"device_name": "Device_1", "metric_name": "CPU Usage", "value": 25.6, "timestamp": datetime.now().isoformat()},
-        {"device_name": "Device_1", "metric_name": "RAM Usage", "value": 45.3, "timestamp": datetime.now().isoformat()},
-        {"device_name": "Device_2", "metric_name": "CPU Usage", "value": 72.1, "timestamp": datetime.now().isoformat()},
-    ]
-
-    # Insert test data into Supabase
-    for data in test_data:
-        save_metrics(data)
-
-    # Fetch and return all metric history
-    history = get_metrics_history()
-    print("Metrics History:", history)  # Print history to terminal for debugging
-    return jsonify({"message": "Test metrics inserted successfully", "history": history})
 
 @app.route('/upload', methods=['POST'])
 def upload_data():
@@ -62,9 +52,20 @@ def upload_data():
 
 @app.route('/history', methods=['GET'])
 def get_history():
-    history = get_metrics_history()
-    return jsonify(history), 200
-
+    try:
+        # Get query parameters for date filtering
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        
+        # Fetch history with optional date filters
+        history = get_metrics_history(start_date, end_date)
+        
+        # Return the history along with the data sent to the database
+        return jsonify({"history": history, "message": "Data retrieved successfully"}), 200
+    except Exception as e:
+        print(f"Error in /history endpoint: {e}")  # Log the error
+        return jsonify({"error": str(e)}), 500
+    
 if __name__ == '__main__':
-    port = int(os.getenv("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    print("Starting Flask server...")
+    app.run(host='0.0.0.0', port=5000, debug=True)
