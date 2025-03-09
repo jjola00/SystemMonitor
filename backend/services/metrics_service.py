@@ -1,7 +1,26 @@
-#backend/services/data_reporting.py
 from database.db_connection import db_client
 from fastapi import HTTPException
 
+def fetch_metrics():
+    response = db_client.table("device_metrics") \
+        .select("value, timestamp, devices(name), metrics(name, unit)") \
+        .order("timestamp", desc=True) \
+        .limit(20) \
+        .execute()
+
+    if not response.data:
+        return []
+
+    return [
+        {
+            "device_name": row["devices"]["name"],
+            "metric_name": row["metrics"]["name"],
+            "value": row["value"],
+            "unit": row["metrics"]["unit"],
+            "timestamp": row["timestamp"]
+        }
+        for row in response.data
+    ]
 def get_recent_metrics(limit=20):
     """Fetches the latest device and third-party metrics."""
     response = db_client.table("device_metrics") \

@@ -1,4 +1,3 @@
-#backend/database/db_connection.py
 from supabase import create_client, Client
 from config.config import Config 
 
