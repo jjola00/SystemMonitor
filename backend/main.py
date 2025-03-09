@@ -18,10 +18,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include the unified router
 app.include_router(router, prefix="/api")
 
-# Root Endpoint
 @app.get("/")
 async def root():
     log_info("Root endpoint accessed")

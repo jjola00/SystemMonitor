@@ -1,12 +1,11 @@
 import logging
 
-# Configure logging format
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler("system_monitor.log"),  # Log to file
-        logging.StreamHandler()  # Log to console
+        logging.FileHandler("system_monitor.log"),  
+        logging.StreamHandler()  
     ]
 )
 
