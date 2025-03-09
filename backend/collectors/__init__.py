@@ -1,0 +1,1 @@
+# This package handles data collection from both system metrics and third-party APIs

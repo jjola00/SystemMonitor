@@ -1,32 +1,6 @@
-#backend/services/metrics_processing.py
-import requests
 from datetime import datetime
 from database.db_connection import db_client
-from config.config import Config 
-
-def fetch_weather_metric(location="Dublin"):
-    """Fetches temperature data from a weather API."""
-    if not Config.WEATHER_API_URL or not Config.WEATHER_API_KEY:
-        raise ValueError("Weather API credentials are missing")
-
-    response = requests.get(f"{Config.WEATHER_API_URL}?q={location}&appid={Config.WEATHER_API_KEY}")
-    if response.status_code == 200:
-        data = response.json()
-        return data["main"]["temp"]
-    else:
-        raise ValueError(f"Failed to fetch weather data: {response.status_code}")
-
-def fetch_stock_metric(symbol="AAPL"):
-    """Fetches stock price data from a stock market API."""
-    if not Config.STOCK_API_URL or not Config.STOCK_API_KEY:
-        raise ValueError("Stock API credentials are missing")
-
-    response = requests.get(f"{Config.STOCK_API_URL}/{symbol}/quote?token={Config.STOCK_API_KEY}")
-    if response.status_code == 200:
-        data = response.json()
-        return data["latestPrice"]
-    else:
-        raise ValueError(f"Failed to fetch stock data: {response.status_code}")
+from collectors.third_party_collector import fetch_weather_metric, fetch_stock_metric
 
 def store_external_metrics():
     """Fetches and stores third-party metrics (weather and stock price)."""
