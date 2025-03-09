@@ -1,3 +1,4 @@
+#backend/api/device_api.py
 from fastapi import APIRouter, HTTPException
 from services.device_management import register_device, upload_metrics
 
@@ -11,7 +12,7 @@ def register(device_name: str, ip_address: str, location: str = "Unknown"):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/upload-metrics")
+@router.post("/metrics/upload")
 def upload(metrics: dict):
     """Uploads device metrics (CPU & RAM usage)."""
     try:

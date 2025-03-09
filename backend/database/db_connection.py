@@ -1,4 +1,8 @@
+#backend/database/db_connection.py
 from supabase import create_client, Client
 from config.config import Config 
 
-db_client: Client = create_client(Config.SUPABASE_URL, Config.SUPABASE_KEY)
+try:
+    db_client: Client = create_client(Config.SUPABASE_URL, Config.SUPABASE_KEY)
+except Exception as e:
+    raise RuntimeError(f"Database connection failed: {e}")
