@@ -12,7 +12,7 @@ def get_or_create_device_id(device_name, ip_address=None):
     if response.data:
         return response.data[0]["id"]
     
-    new_device = {"name": device_name, "ip_address": ip_address, "created_at": datetime.utcnow()}
+    new_device = {"name": device_name, "ip_address": ip_address, "created_at": datetime.now(timezone.utc).isoformat()}
     insert_response = db_client.table("devices").insert(new_device).execute()
     
     return insert_response.data[0]["id"] if insert_response.data else None
