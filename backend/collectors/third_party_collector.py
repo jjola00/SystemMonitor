@@ -2,28 +2,34 @@ import requests
 from config.config import Config
 from utils.logger import log_info, log_error
 
-def fetch_weather_metric(location="Dublin"):
-    """Fetches temperature data from a weather API."""
+def fetch_weather_metric():
+    """Fetches temperature from the weather API."""
     if not Config.WEATHER_API_URL or not Config.WEATHER_API_KEY:
-        raise ValueError("Weather API credentials are missing")
+        raise ValueError("Missing weather API credentials")
 
-    log_info(f"Fetching weather metric for location: {location}")
-    response = requests.get(f"{Config.WEATHER_API_URL}?q={location}&appid={Config.WEATHER_API_KEY}")
-    if response.status_code == 200:
-        log_info("Weather data fetched successfully.")
-        return response.json()["main"]["temp"]
-    log_error(f"Failed to fetch weather data: {response.status_code}")
-    raise ValueError(f"Failed to fetch weather data: {response.status_code}")
+    url = f"{Config.WEATHER_API_URL}?q=Dublin&appid={Config.WEATHER_API_KEY}"
+    log_info("Fetching weather metric.")
 
-def fetch_stock_metric(symbol="AAPL"):
-    """Fetches stock price data from a stock market API."""
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json().get("main", {}).get("temp")
+    except requests.RequestException as e:
+        log_error(f"Weather API error: {e}")
+        return None
+
+def fetch_stock_metric():
+    """Fetches stock price from the stock API."""
     if not Config.STOCK_API_URL or not Config.STOCK_API_KEY:
-        raise ValueError("Stock API credentials are missing")
+        raise ValueError("Missing stock API credentials")
 
-    log_info(f"Fetching stock metric for symbol: {symbol}")
-    response = requests.get(f"{Config.STOCK_API_URL}/{symbol}/quote?token={Config.STOCK_API_KEY}")
-    if response.status_code == 200:
-        log_info("Stock data fetched successfully.")
-        return response.json()["latestPrice"]
-    log_error(f"Failed to fetch stock data: {response.status_code}")
-    raise ValueError(f"Failed to fetch stock data: {response.status_code}")
+    url = f"{Config.STOCK_API_URL}/AAPL/quote?token={Config.STOCK_API_KEY}"
+    log_info("Fetching stock metric.")
+
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json().get("latestPrice")
+    except requests.RequestException as e:
+        log_error(f"Stock API error: {e}")
+        return None

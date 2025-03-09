@@ -1,33 +1,36 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
+import asyncio
+from contextlib import asynccontextmanager
 from api.router import router
-from utils.logger import log_info, log_error
+from services.metrics_service import store_local_metrics, store_external_metrics
+from utils.logger import log_info
 
-app = FastAPI(
-    title="System Monitor API",
-    description="API for monitoring system and external metrics",
-    version="1.0"
-)
+async def collect_and_store_metrics():
+    """Runs background metric collection."""
+    while True:
+        try:
+            store_local_metrics()
+            store_external_metrics()
+            log_info("Metrics collected.")
+        except Exception as e:
+            log_info(f"Error: {e}")
+        await asyncio.sleep(5)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    task = asyncio.create_task(collect_and_store_metrics())
+    yield
+    task.cancel()
+
+app = FastAPI(title="System Monitor API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:8080"], 
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"], 
+    allow_headers=["*"], 
 )
 
 app.include_router(router, prefix="/api")
-
-@app.get("/")
-async def root():
-    log_info("Root endpoint accessed")
-    return {"message": "System Monitor API is running"}
-
-if __name__ == "__main__":
-    log_info("Starting System Monitor API...")
-    try:
-        uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
-    except Exception as e:
-        log_error(f"Error starting API: {e}")

@@ -3,7 +3,7 @@ from database.db_connection import db_client
 def create_tables():
     """Creates necessary tables in the database if they don't exist."""
     db_client.table("devices").upsert([
-        {"id": "UUID", "name": "TEXT", "ip_address": "TEXT", "location": "TEXT", "created_at": "TIMESTAMP"}
+        {"id": "UUID", "name": "TEXT", "ip_address": "TEXT", "created_at": "TIMESTAMP"}
     ]).execute()
 
     db_client.table("metrics").upsert([
