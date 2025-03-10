@@ -29,21 +29,21 @@ class MetricRepository:
         Insert device metrics into the database.
         metrics: A dictionary where keys are metric names and values are metric values.
         """
-        metric_ids = {}
+        records = []
         for metric_name, value in metrics.items():
+            if metric_name == "timestamp" or metric_name == "device_name":
+                continue
+                
             metric_id = self.get_or_create_metric_id(metric_name)
-            metric_ids[metric_name] = metric_id
-
-        # Insert metrics into device_metrics table
-        db_client.table("device_metrics").insert([
-            {
+            records.append({
                 "device_id": device_id,
                 "metric_id": metric_id,
                 "value": value,
                 "timestamp": datetime.now(timezone.utc).isoformat()
-            }
-            for metric_name, metric_id in metric_ids.items()
-        ]).execute()
+            })
+
+        if records:
+            db_client.table("device_metrics").insert(records).execute()
 
     def insert_weather_metric(self, weather_temp):
         """

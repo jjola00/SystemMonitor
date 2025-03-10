@@ -8,17 +8,18 @@ from fastapi import HTTPException
 def store_local_metrics():
     """Fetches and stores CPU and RAM usage."""
     metrics = collect_system_metrics()
-    device_repo = DeviceRepository()
-    metric_repo = MetricRepository()
-
-    device_id = device_repo.get_or_create_device_id(metrics["device_name"])
-    metric_map = metric_repo.get_metric_ids(["cpu_usage", "ram_usage"])
-
-    if "cpu_usage" not in metric_map or "ram_usage" not in metric_map:
-        raise HTTPException(status_code=500, detail="Metrics (cpu_usage, ram_usage) not found in database")
-
-    metric_repo.insert_device_metrics(device_id, metric_map, metrics)
-    log_info("Local metrics stored successfully.")
+    
+    if metrics is not None:
+        device_repo = DeviceRepository()
+        metric_repo = MetricRepository()
+        
+        device_id = device_repo.get_or_create_device_id(metrics["device_name"])
+        
+        metric_repo.insert_device_metrics(device_id, metrics)
+        log_info("Local metrics stored successfully.")
+        return {"status": "success"}
+    else:
+        raise HTTPException(status_code=500, detail="Failed to collect system metrics")    
 
 def fetch_local_metrics(limit=10):
     """Fetches latest local device metrics."""
