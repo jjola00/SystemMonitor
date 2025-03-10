@@ -1,6 +1,7 @@
 # backend/database/repositories/metric_repository.py
 from database.db_connection import db_client
 from datetime import datetime, timezone
+from .device_repository import DeviceRepository
 
 class MetricRepository:
     def get_or_create_metric_id(self, metric_name, unit=None):
@@ -48,8 +49,9 @@ class MetricRepository:
         """
         Insert weather metrics into the database.
         """
+        device_repo = DeviceRepository()
         metric_id = self.get_or_create_metric_id("weather_temp", unit="°C")
-        device_id = self.get_or_create_device_id("WeatherMonitor")
+        device_id = device_repo.get_or_create_device_id("WeatherMonitor")
 
         db_client.table("device_metrics").insert([
             {
@@ -64,8 +66,9 @@ class MetricRepository:
         """
         Insert crypto metrics into the database.
         """
+        device_repo = DeviceRepository()
         metric_id = self.get_or_create_metric_id("crypto_price", unit="USD")
-        device_id = self.get_or_create_device_id("CryptoMonitor")
+        device_id = device_repo.get_or_create_device_id("CryptoMonitor")
 
         db_client.table("device_metrics").insert([
             {
