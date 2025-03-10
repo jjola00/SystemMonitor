@@ -1,3 +1,4 @@
+#backend/api/test_api.bat
 @echo off
 echo Testing Device Registration...
 curl -X POST "http://localhost:8000/api/register-device?device_name=test_device&ip_address=192.168.1.100&location=Office"
