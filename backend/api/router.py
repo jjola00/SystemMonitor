@@ -1,10 +1,10 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter
 from services.metrics_service import (
     store_local_metrics, 
     store_external_metrics, 
     fetch_local_metrics, 
     fetch_weather_metrics, 
-    fetch_stock_metrics
+    fetch_crypto_metrics
 )
 from utils.logger import log_info
 
@@ -17,10 +17,10 @@ def upload_device_metrics(metrics: dict):
     return store_local_metrics(metrics)
 
 @router.post("/metrics/fetch-external")
-def fetch_external(metrics: dict):
-    """Fetches and stores weather and stock metrics."""
+def fetch_external():
+    """Fetches and stores weather and crypto metrics."""
     log_info("Fetching and storing external metrics.")
-    return store_external_metrics(metrics)
+    return store_external_metrics()
 
 @router.get("/metrics/local")
 def get_local_metrics(limit: int = 20):
@@ -34,8 +34,8 @@ def get_weather_metrics(limit: int = 10):
     log_info(f"Fetching latest {limit} weather metrics.")
     return fetch_weather_metrics(limit)
 
-@router.get("/metrics/stocks")
-def get_stock_metrics(limit: int = 10):
-    """Fetch latest stock price data."""
-    log_info(f"Fetching latest {limit} stock metrics.")
-    return fetch_stock_metrics(limit)
+@router.get("/metrics/crypto")
+def get_crypto_metrics(limit: int = 10):
+    """Fetch latest crypto price data."""
+    log_info(f"Fetching latest {limit} crypto metrics.")
+    return fetch_crypto_metrics(limit)

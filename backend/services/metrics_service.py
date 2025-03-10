@@ -1,10 +1,11 @@
 from database.db_connection import db_client
 from datetime import datetime, timezone
 from collectors.system_collector import collect_system_metrics
-from collectors.third_party_collector import fetch_weather_metric, fetch_stock_metric
+from collectors.third_party_collector import fetch_weather_metric, fetch_crypto_metric
 from utils.logger import log_info
 from utils.helpers import get_local_ip
 from fastapi import HTTPException
+
 
 def get_or_create_device_id(device_name, ip_address=None):
     """Fetch device ID by name, or insert it if not found."""
@@ -12,7 +13,6 @@ def get_or_create_device_id(device_name, ip_address=None):
     
     if response.data:
         device_id = response.data[0]["id"]
-        # Update IP address if it has changed
         if ip_address and response.data[0].get("ip_address") != ip_address:
             db_client.table("devices").update({"ip_address": ip_address}).eq("id", device_id).execute()
         return device_id
@@ -21,17 +21,13 @@ def get_or_create_device_id(device_name, ip_address=None):
     insert_response = db_client.table("devices").insert(new_device).execute()
     
     return insert_response.data[0]["id"] if insert_response.data else None
+
 def store_local_metrics():
     """Fetches and stores CPU and RAM usage."""
     metrics = collect_system_metrics()
-    
-    # Get the local IP address
     ip_address = get_local_ip()
-    
-    # Pass the IP address when getting or creating the device
     device_id = get_or_create_device_id(metrics["device_name"], ip_address)
 
-    # Rest of the function remains the same
     metric_ids = db_client.table("metrics").select("id, name").in_("name", ["cpu_usage", "ram_usage"]).execute()
     metric_map = {m["name"]: m["id"] for m in metric_ids.data}
 
@@ -46,28 +42,50 @@ def store_local_metrics():
     log_info("Local metrics stored successfully.")
 
 def store_external_metrics():
-    """Fetches and stores weather and stock metrics."""
-    device_name = "Server 1"  # Define a consistent device name
+    """Fetches and stores weather and crypto metrics."""
+    device_name = "Server temp"
     device_id = get_or_create_device_id(device_name)
 
-    metric_ids = db_client.table("metrics").select("id, name").in_("name", ["weather_temp", "stock_price"]).execute()
+    # Check if metrics already exist before inserting
+    existing_metrics = db_client.table("metrics").select("name").in_("name", ["weather_temp", "crypto_price"]).execute()
+    existing_metric_names = {m["name"] for m in existing_metrics.data}
+
+    metrics_to_upsert = []
+    if "weather_temp" not in existing_metric_names:
+        metrics_to_upsert.append({"name": "weather_temp", "unit": "°C"})
+    if "crypto_price" not in existing_metric_names:
+        metrics_to_upsert.append({"name": "crypto_price", "unit": "USD"})
+
+    if metrics_to_upsert:
+        db_client.table("metrics").upsert(metrics_to_upsert).execute()
+
+    metric_ids = db_client.table("metrics").select("id, name").in_("name", ["weather_temp", "crypto_price"]).execute()
     metric_map = {m["name"]: m["id"] for m in metric_ids.data}
 
-    if "weather_temp" not in metric_map or "stock_price" not in metric_map:
-        raise HTTPException(status_code=500, detail="Metrics (weather_temp, stock_price) not found in database")
-
     weather_temp = fetch_weather_metric()
-    stock_price = fetch_stock_metric()
+    crypto_price = fetch_crypto_metric()
 
     metrics_to_insert = []
     if weather_temp is not None:
-        metrics_to_insert.append({"device_id": device_id, "metric_id": metric_map["weather_temp"], "value": weather_temp, "timestamp": datetime.now(timezone.utc).isoformat()})
-    if stock_price is not None:
-        metrics_to_insert.append({"device_id": device_id, "metric_id": metric_map["stock_price"], "value": stock_price, "timestamp": datetime.now(timezone.utc).isoformat()})
+        metrics_to_insert.append({
+            "device_id": device_id,
+            "metric_id": metric_map["weather_temp"],
+            "value": weather_temp,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+    if crypto_price is not None:
+        log_info(f"Crypto price: {crypto_price['value']} USD")
+        metrics_to_insert.append({
+            "device_id": device_id,
+            "metric_id": metric_map["crypto_price"],
+            "value": crypto_price["value"],
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
 
     if metrics_to_insert:
         db_client.table("device_metrics").insert(metrics_to_insert).execute()
         log_info("External metrics stored successfully.")
+
 
 def fetch_local_metrics(limit=10):
     """Fetches latest local device metrics."""
@@ -91,16 +109,16 @@ def fetch_weather_metrics(limit=10):
 
     return response.data or {"message": "No weather metrics found"}
 
-def fetch_stock_metrics(limit=10):
-    """Fetches latest stock metrics."""
+def fetch_crypto_metrics(limit=10):
+    """Fetches latest crypto metrics."""
     response = db_client.table("device_metrics") \
         .select("value, timestamp, metrics(name)") \
-        .eq("metrics.name", "stock_price") \
+        .eq("metrics.name", "crypto_price") \
         .order("timestamp", desc=True) \
         .limit(limit) \
         .execute()
 
-    return response.data or {"message": "No stock metrics found"}
+    return response.data or {"message": "No crypto metrics found"}
 
 def get_metric_id(metric_name):
     """Helper function to fetch metric ID."""
