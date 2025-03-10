@@ -2,34 +2,42 @@ from database.db_connection import db_client
 from datetime import datetime, timezone
 from collectors.system_collector import collect_system_metrics
 from collectors.third_party_collector import fetch_weather_metric, fetch_stock_metric
-from utils.logger import log_info, log_error
+from utils.logger import log_info
+from utils.helpers import get_local_ip
 from fastapi import HTTPException
 
 def get_or_create_device_id(device_name, ip_address=None):
     """Fetch device ID by name, or insert it if not found."""
-    response = db_client.table("devices").select("id").eq("name", device_name).execute()
+    response = db_client.table("devices").select("id, ip_address").eq("name", device_name).execute()
     
     if response.data:
-        return response.data[0]["id"]
+        device_id = response.data[0]["id"]
+        # Update IP address if it has changed
+        if ip_address and response.data[0].get("ip_address") != ip_address:
+            db_client.table("devices").update({"ip_address": ip_address}).eq("id", device_id).execute()
+        return device_id
     
     new_device = {"name": device_name, "ip_address": ip_address, "created_at": datetime.now(timezone.utc).isoformat()}
     insert_response = db_client.table("devices").insert(new_device).execute()
     
     return insert_response.data[0]["id"] if insert_response.data else None
-
 def store_local_metrics():
     """Fetches and stores CPU and RAM usage."""
     metrics = collect_system_metrics()
-    device_id = get_or_create_device_id(metrics["device_name"])
+    
+    # Get the local IP address
+    ip_address = get_local_ip()
+    
+    # Pass the IP address when getting or creating the device
+    device_id = get_or_create_device_id(metrics["device_name"], ip_address)
 
-    # Fetch metric IDs
+    # Rest of the function remains the same
     metric_ids = db_client.table("metrics").select("id, name").in_("name", ["cpu_usage", "ram_usage"]).execute()
     metric_map = {m["name"]: m["id"] for m in metric_ids.data}
 
     if "cpu_usage" not in metric_map or "ram_usage" not in metric_map:
         raise HTTPException(status_code=500, detail="Metrics (cpu_usage, ram_usage) not found in database")
 
-    # Insert metrics into device_metrics
     db_client.table("device_metrics").insert([
         {"device_id": device_id, "metric_id": metric_map["cpu_usage"], "value": metrics["cpu_usage"], "timestamp": datetime.now(timezone.utc).isoformat()},
         {"device_id": device_id, "metric_id": metric_map["ram_usage"], "value": metrics["ram_usage"], "timestamp": datetime.now(timezone.utc).isoformat()}
