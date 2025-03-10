@@ -1,9 +1,12 @@
+# backend/collectors/third_party_collector.py
 import requests
 from config.config import Config
 from utils.logger import log_info, log_error
+from utils.cache_decorators import cached
 
+@cached(ttl_seconds=1800, key_prefix="weather_api")  # Cache weather API calls for 30 minutes
 def fetch_weather_metric():
-    """Fetches temperature from the weather API."""
+    """Fetches temperature from the weather API with caching."""
     if not Config.WEATHER_API_URL or not Config.WEATHER_API_KEY:
         log_error("Missing weather API credentials.")
         return None
@@ -38,8 +41,9 @@ def fetch_weather_metric():
         log_error(f"Weather API error: {e}")
         return None
 
+@cached(ttl_seconds=300, key_prefix="crypto_api")  # Cache crypto API calls for 5 minutes
 def fetch_crypto_metric():
-    """Fetches Bitcoin price from CoinGecko and includes the unit."""
+    """Fetches Bitcoin price from CoinGecko with caching."""
     if not Config.CRYPTO_API_URL:
         log_error("Missing CoinGecko API credentials.")
         return None

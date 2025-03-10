@@ -2,25 +2,38 @@
 from database.db_connection import db_client
 from datetime import datetime, timezone
 from .device_repository import DeviceRepository
+from utils.cache import cache
+from utils.logger import log_info
 
 class MetricRepository:
     def get_or_create_metric_id(self, metric_name, unit=None):
         """
-        Fetch metric ID by name, or create it if it doesn't exist.
-        If the metric doesn't exist, it will be created with the provided unit.
+        Fetch metric ID by name with caching, or create it if it doesn't exist.
         """
+        # Try to get from cache first
+        cache_key = f"metric_id_{metric_name}"
+        cached_id = cache.get(cache_key)
+        
+        if cached_id:
+            return cached_id
+            
+        # Not in cache, fetch from database
         response = db_client.table("metrics").select("id").eq("name", metric_name).execute()
         
         if response.data:
-            # Metric already exists, return its ID
-            return response.data[0]["id"]
+            # Metric exists, cache and return its ID
+            metric_id = response.data[0]["id"]
+            cache.set(cache_key, metric_id, ttl_seconds=3600)  # Cache for 1 hour
+            return metric_id
         
         # Metric doesn't exist, create it
         new_metric = {"name": metric_name, "unit": unit}
         insert_response = db_client.table("metrics").insert(new_metric).execute()
         
         if insert_response.data:
-            return insert_response.data[0]["id"]
+            metric_id = insert_response.data[0]["id"]
+            cache.set(cache_key, metric_id, ttl_seconds=3600)  # Cache for 1 hour
+            return metric_id
         else:
             raise ValueError(f"Failed to create metric: {metric_name}")
 
@@ -61,6 +74,9 @@ class MetricRepository:
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
         ]).execute()
+        
+        # Clear any cached weather metrics
+        cache.delete("weather_metrics")
 
     def insert_crypto_metric(self, crypto_price):
         """
@@ -78,11 +94,15 @@ class MetricRepository:
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
         ]).execute()
+        
+        # Clear any cached crypto metrics
+        cache.delete("crypto_metrics")
 
     def fetch_metrics(self, metric_names, limit=10):
         """
         Fetch latest metrics by names.
         """
+        log_info(f"Executing database query for metrics: {metric_names}")
         response = db_client.table("device_metrics") \
             .select("value, timestamp, metrics(name)") \
             .in_("metrics.name", metric_names) \
