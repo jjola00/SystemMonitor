@@ -1,56 +1,85 @@
 # backend/database/repositories/metric_repository.py
 from database.db_connection import db_client
 from datetime import datetime, timezone
-from database.repositories.device_repository import DeviceRepository
 
 class MetricRepository:
-    def __init__(self):
-        self.device_repository = DeviceRepository() 
+    def get_or_create_metric_id(self, metric_name, unit=None):
+        """
+        Fetch metric ID by name, or create it if it doesn't exist.
+        If the metric doesn't exist, it will be created with the provided unit.
+        """
+        response = db_client.table("metrics").select("id").eq("name", metric_name).execute()
+        
+        if response.data:
+            # Metric already exists, return its ID
+            return response.data[0]["id"]
+        
+        # Metric doesn't exist, create it
+        new_metric = {"name": metric_name, "unit": unit}
+        insert_response = db_client.table("metrics").insert(new_metric).execute()
+        
+        if insert_response.data:
+            return insert_response.data[0]["id"]
+        else:
+            raise ValueError(f"Failed to create metric: {metric_name}")
 
-    def get_metric_ids(self, metric_names):
-        """Fetch metric IDs by names."""
-        response = db_client.table("metrics").select("id, name").in_("name", metric_names).execute()
-        return {m["name"]: m["id"] for m in response.data}
+    def insert_device_metrics(self, device_id, metrics):
+        """
+        Insert device metrics into the database.
+        metrics: A dictionary where keys are metric names and values are metric values.
+        """
+        metric_ids = {}
+        for metric_name, value in metrics.items():
+            metric_id = self.get_or_create_metric_id(metric_name)
+            metric_ids[metric_name] = metric_id
 
-    def insert_device_metrics(self, device_id, metric_map, metrics):
-        """Insert device metrics into the database."""
-        db_client.table("device_metrics").insert([
-            {"device_id": device_id, "metric_id": metric_map["cpu_usage"], "value": metrics["cpu_usage"], "timestamp": datetime.now(timezone.utc).isoformat()},
-            {"device_id": device_id, "metric_id": metric_map["ram_usage"], "value": metrics["ram_usage"], "timestamp": datetime.now(timezone.utc).isoformat()}
-        ]).execute()
-    
-    def insert_crypto_metric(self, crypto_price):
-        """Insert crypto metrics into the database."""
-        metric_map = self.get_metric_ids(["crypto_price"])
-        if "crypto_price" not in metric_map:
-            raise ValueError("Crypto price metric not found in database.")
-
+        # Insert metrics into device_metrics table
         db_client.table("device_metrics").insert([
             {
-                "device_id": self.device_repository.get_or_create_device_id("CryptoMonitor"),
-                "metric_id": metric_map["crypto_price"],
-                "value": crypto_price["value"],
+                "device_id": device_id,
+                "metric_id": metric_id,
+                "value": value,
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
+            for metric_name, metric_id in metric_ids.items()
         ]).execute()
 
     def insert_weather_metric(self, weather_temp):
-        """Insert weather metrics into the database."""
-        metric_map = self.get_metric_ids(["weather_temp"])
-        if "weather_temp" not in metric_map:
-            raise ValueError("Weather temperature metric not found in database.")
+        """
+        Insert weather metrics into the database.
+        """
+        metric_id = self.get_or_create_metric_id("weather_temp", unit="°C")
+        device_id = self.get_or_create_device_id("WeatherMonitor")
 
         db_client.table("device_metrics").insert([
             {
-                "device_id": self.device_repository.get_or_create_device_id("WeatherMonitor"),
-                "metric_id": metric_map["weather_temp"],
+                "device_id": device_id,
+                "metric_id": metric_id,
                 "value": weather_temp,
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
         ]).execute()
 
+    def insert_crypto_metric(self, crypto_price):
+        """
+        Insert crypto metrics into the database.
+        """
+        metric_id = self.get_or_create_metric_id("crypto_price", unit="USD")
+        device_id = self.get_or_create_device_id("CryptoMonitor")
+
+        db_client.table("device_metrics").insert([
+            {
+                "device_id": device_id,
+                "metric_id": metric_id,
+                "value": crypto_price["value"],
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        ]).execute()
+
     def fetch_metrics(self, metric_names, limit=10):
-        """Fetch latest metrics by names."""
+        """
+        Fetch latest metrics by names.
+        """
         response = db_client.table("device_metrics") \
             .select("value, timestamp, metrics(name)") \
             .in_("metrics.name", metric_names) \
