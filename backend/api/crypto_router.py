@@ -1,4 +1,4 @@
-# backend/api/routers/crypto_router.py
+# backend/api/crypto_router.py
 from fastapi import APIRouter
 from services.crypto_service import store_crypto_metrics, fetch_crypto_metrics
 from utils.logger import log_info
