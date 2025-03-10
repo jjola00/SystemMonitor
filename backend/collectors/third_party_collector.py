@@ -53,7 +53,6 @@ def fetch_crypto_metric():
         data = response.json().get("bitcoin", {})
 
         if "usd" in data:
-            log_info(f"Crypto price: {data['usd']} USD")
             return {"value": data["usd"], "unit": "USD"}
         
         log_error("Crypto API returned empty data.")
