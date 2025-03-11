@@ -109,8 +109,10 @@ const Gauge = ({ systemMetrics, weatherMetrics, loading }) => {
                   gaugeConfigs.weather.colors.medium,
                   gaugeConfigs.weather.colors.high
                 ],
-                arcDelimiters: [10, 25]
+                // Fixed: Set arc delimiters within the min-max range of the weather gauge (-10 to 40)
+                arcDelimiters: [5, 25]
               }}
+              // Explicitly set min/max values from config to ensure consistency
               maxValue={gaugeConfigs.weather.max}
               minValue={gaugeConfigs.weather.min}
             />
