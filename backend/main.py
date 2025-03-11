@@ -8,13 +8,14 @@ app = FastAPI(title="System Monitor API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:8080",  # For local development
-        "https://jjola00.github.io",  # Your GitHub Pages URL
-        "https://my-fastapi-backend-miau.onrender.com",  # Your Render backend URL
+        "http://localhost:3000",
+        "http://localhost:8080", 
+        "https://jjola00.github.io",  
+        "https://my-fastapi-backend-miau.onrender.com", 
     ],
     allow_credentials=True,
-    allow_methods=["*"],  # Allow all HTTP methods
-    allow_headers=["*"],  # Allow all headers
+    allow_methods=["*"],  
+    allow_headers=["*"], 
 )
 
 # Include routers

@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 from utils.logger import log_info, log_error  
 
 def collect_system_metrics():
-    """Collects CPU and RAM usage metrics from the system."""
     log_info("Collecting system metrics...") 
     try:
         metrics = {

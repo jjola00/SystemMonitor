@@ -3,17 +3,15 @@ from config.config import Config
 from utils.logger import log_info, log_error
 
 def fetch_weather_metric():
-    """Fetches temperature from the weather API."""
     if not Config.WEATHER_API_URL or not Config.WEATHER_API_KEY:
         log_error("Missing weather API credentials.")
         return None
 
-    # Define the parameters for the API request
     params = {
-        "location": "Dublin",  # Specify the location
-        "apikey": Config.WEATHER_API_KEY,  # Your API key
-        "fields": ["temperature"],  # Specify the fields you want to retrieve
-        "units": "metric"  # Specify the unit (metric for Celsius, imperial for Fahrenheit)
+        "location": "Dublin",  
+        "apikey": Config.WEATHER_API_KEY,  
+        "fields": ["temperature"],  
+        "units": "metric"  
     }
 
     url = Config.WEATHER_API_URL

@@ -12,7 +12,6 @@ class Config:
 
     WEATHER_API_URL = os.getenv("WEATHER_API_URL")
     WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
-
     CRYPTO_API_URL = os.getenv("CRYPTO_API_URL")
 
     @staticmethod
