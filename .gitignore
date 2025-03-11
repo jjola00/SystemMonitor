@@ -1,0 +1,33 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# venv
+venv/
+env/
+.venv/
+
+/node_modules
+
+# misc
+.env
+secrets.env
+*.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# directories
+build/
+dist/
+*.egg-info/
+
+# logging
+*.log
+
+# local dev files
+local_settings.py
