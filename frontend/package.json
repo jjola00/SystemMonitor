@@ -30,7 +30,7 @@
       "react-app/jest"
     ]
   },
-  "homepage": "https://<username>.github.io/<repository-name>",
+  "homepage": "https://jjola00.github.io/your-repository-name/",
   "browserslist": {
     "production": [
       ">0.2%",
