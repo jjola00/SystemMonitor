@@ -1,4 +1,3 @@
-//frontend/src/App.jsx
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { 
@@ -9,15 +8,16 @@ import {
   Link, 
   ErrorContainer,
   RetryButton
-} from './styles/StyledComponents';  // Fixed import path
-import Chart from './components/Chart';  // Fixed import path
-import Gauge from './components/Gauge';  // Fixed import path
-import Table from './components/Table';  // Fixed import path
+} from './styles/StyledComponents';
+import Chart from './components/Chart';
+import Gauge from './components/Gauge';
+import Table from './components/Table';
+import Loading from './components/Loading';
 
 function App() {
   const [systemMetrics, setSystemMetrics] = useState([]);
-  const [weatherMetrics] = useState([]);
-  const [cryptoMetrics] = useState([]);
+  const [weatherMetrics, setWeatherMetrics] = useState([]);
+  const [cryptoMetrics, setCryptoMetrics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -26,10 +26,25 @@ function App() {
     setError(null);
     
     try {
-      const systemResponse = await fetch('/api/metrics/system');
-      if (!systemResponse.ok) throw new Error('Failed to fetch system metrics');
-      const systemData = await systemResponse.json();
+      const [systemResponse, weatherResponse, cryptoResponse] = await Promise.all([
+        fetch('/api/metrics/system'),
+        fetch('/api/metrics/weather'),
+        fetch('/api/metrics/crypto')
+      ]);
+
+      if (!systemResponse.ok || !weatherResponse.ok || !cryptoResponse.ok) {
+        throw new Error('Failed to fetch metrics');
+      }
+
+      const [systemData, weatherData, cryptoData] = await Promise.all([
+        systemResponse.json(),
+        weatherResponse.json(),
+        cryptoResponse.json()
+      ]);
+
       setSystemMetrics(systemData);
+      setWeatherMetrics(weatherData);
+      setCryptoMetrics(cryptoData);
     } catch (err) {
       console.error('Error fetching metrics:', err);
       setError(err.message);

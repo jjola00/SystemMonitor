@@ -1,4 +1,3 @@
-/*frontend/src/components/Table.jsx*/
 import React from 'react';
 import styled from 'styled-components';
 import { MetricHeading } from '../styles/StyledComponents';
@@ -18,6 +17,8 @@ const TableHead = styled.thead`
   background-color: #009879;
   color: #ffffff;
   text-align: left;
+  position: sticky;
+  top: 0;
 `;
 
 const TableBody = styled.tbody`
@@ -66,6 +67,27 @@ const TabButton = styled.button`
   }
 `;
 
+const PaginationContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+`;
+
+const PaginationButton = styled.button`
+  background-color: #009879;
+  color: white;
+  border: none;
+  padding: 10px;
+  margin: 0 5px;
+  cursor: pointer;
+  border-radius: 5px;
+
+  &:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+`;
+
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleString();
@@ -73,9 +95,16 @@ const formatDate = (dateString) => {
 
 const Table = ({ systemMetrics, weatherMetrics, cryptoMetrics, loading }) => {
   const [activeTab, setActiveTab] = React.useState('system');
-  
+  const [currentPage, setCurrentPage] = React.useState(0);
+  const itemsPerPage = 10;
+
   if (loading) return <Loading />;
-  
+
+  const getPaginatedData = (data) => {
+    const startIndex = currentPage * itemsPerPage;
+    return data.slice(startIndex, startIndex + itemsPerPage);
+  };
+
   const renderTable = () => {
     let data;
     let columns;
@@ -101,26 +130,40 @@ const Table = ({ systemMetrics, weatherMetrics, cryptoMetrics, loading }) => {
     if (!data || data.length === 0) {
       return <p>No data available for {activeTab} metrics.</p>;
     }
-    
+
+    const paginatedData = getPaginatedData(data);
+    const totalPages = Math.ceil(data.length / itemsPerPage);
+
     return (
-      <StyledTable>
-        <TableHead>
-          <TableRow>
-            {columns.map((column, index) => (
-              <TableHeader key={index}>{column}</TableHeader>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {data.map((row, index) => (
-            <TableRow key={index}>
-              <TableCell>{row.metrics ? row.metrics.name : 'Unknown'}</TableCell>
-              <TableCell>{row.value.toFixed(2)}</TableCell>
-              <TableCell>{formatDate(row.timestamp)}</TableCell>
+      <>
+        <StyledTable>
+          <TableHead>
+            <TableRow>
+              {columns.map((column, index) => (
+                <TableHeader key={index}>{column}</TableHeader>
+              ))}
             </TableRow>
-          ))}
-        </TableBody>
-      </StyledTable>
+          </TableHead>
+          <TableBody>
+            {paginatedData.map((row, index) => (
+              <TableRow key={index}>
+                <TableCell>{row.metrics ? row.metrics.name : 'Unknown'}</TableCell>
+                <TableCell>{row.value.toFixed(2)}</TableCell>
+                <TableCell>{formatDate(row.timestamp)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </StyledTable>
+        <PaginationContainer>
+          <PaginationButton onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 0}>
+            Previous
+          </PaginationButton>
+          <span>Page {currentPage + 1} of {totalPages}</span>
+          <PaginationButton onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage >= totalPages - 1}>
+            Next
+          </PaginationButton>
+        </PaginationContainer>
+      </>
     );
   };
   

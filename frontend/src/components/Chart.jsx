@@ -1,5 +1,3 @@
-/* frontend/src/components/Chart.jsx */
-
 import React from 'react';
 import {
   Chart as ChartJS,
@@ -37,28 +35,19 @@ const Chart = ({ metricData, title, loading, metricType }) => {
   }
 
   // Group metrics by name
-  const metricsGroupedByName = metricData.reduce((groups, metric) => {
+  const metricsGroupedByName = {};
+  metricData.forEach(metric => {
     const name = metric.metrics ? metric.metrics.name : 'Unknown';
-    if (!groups[name]) {
-      groups[name] = [];
+    if (!metricsGroupedByName[name]) {
+      metricsGroupedByName[name] = [];
     }
-    groups[name].push(metric);
-    return groups;
-  }, {});
+    metricsGroupedByName[name].push(metric);
+  });
 
   // Generate datasets for the chart
   const datasets = Object.entries(metricsGroupedByName).map(([metricName, metrics]) => {
-    let colorConfig;
-    
-    // Determine color config based on metric type and name
-    if (metricType === 'system') {
-      colorConfig = metricName.includes('cpu') ? chartColors.system.cpu : chartColors.system.ram;
-    } else if (metricType === 'weather') {
-      colorConfig = chartColors.weather.temp;
-    } else if (metricType === 'crypto') {
-      colorConfig = chartColors.crypto.price;
-    }
-    
+    const colorConfig = chartColors[metricType]?.[metricName.includes('cpu') ? 'cpu' : 'ram'] || chartColors[metricType]?.temp || chartColors[metricType]?.price;
+
     return {
       label: metricName,
       data: metrics.map(metric => ({
@@ -116,17 +105,10 @@ const Chart = ({ metricData, title, loading, metricType }) => {
     },
   };
 
-  // Handle refresh button click
-  const handleRefresh = async () => {
-    // This would normally fetch fresh data, but our App component already has auto-refresh
-    // Here we could trigger an immediate refresh if needed
-    window.location.reload();
-  };
-
   return (
     <div style={{ width: '100%', maxWidth: '100%' }}>
       <MetricHeading>{title}</MetricHeading>
-      <Button onClick={handleRefresh}>Refresh Data</Button>
+      <Button onClick={() => window.location.reload()}>Refresh Data</Button>
       <div style={{ width: '100%', height: '600px' }}>
         <Line options={options} data={{ datasets }} />
       </div>
