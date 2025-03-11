@@ -31,7 +31,7 @@
       "react-app/jest"
     ]
   },
-  "homepage": "https://jjola00.github.io/SystemMonitor/",
+  "homepage": "https://jjola00.github.io/SystemMonitor",
   "browserslist": {
     "production": [
       ">0.2%",
