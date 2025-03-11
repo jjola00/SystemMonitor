@@ -24,6 +24,7 @@ jobs:
         run: |
           cd frontend  # Change to the frontend directory
           npm ci  # Install project dependencies
+          npm install gh-pages --save-dev  # Ensure gh-pages is installed
 
       - name: Build project
         run: |
@@ -45,8 +46,16 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3  # Ensure the repository is checked out
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'  # Use Node.js version 16
+
+      - name: Install dependencies
+        run: |
+          cd frontend  # Change to the frontend directory
+          npm ci  # Install project dependencies
+          npm install gh-pages --save-dev  # Ensure gh-pages is installed
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -54,7 +63,7 @@ jobs:
           name: build
           path: frontend/build/  # Adjust path to the build directory
 
-      - name: Deploy
+      - name: Deploy to GitHub Pages
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
