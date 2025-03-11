@@ -1,0 +1,65 @@
+name: Deploy React App
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3  # Use the latest version
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'  # Use Node.js version 16
+
+      - name: Install dependencies
+        run: |
+          cd frontend  # Change to the frontend directory
+          npm install  # Install project dependencies
+
+      - name: Build project
+        run: |
+          cd frontend  # Change to the frontend directory
+          npm run build  # Build the project
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: frontend/build/  # Adjust path to the build directory
+
+  deploy:
+    environment:
+      name: github-pages
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3  # Ensure the repository is checked out
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: frontend/build/  # Adjust path to the build directory
+
+      - name: Deploy
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git remote set-url origin https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          cd frontend  # Change to the frontend directory
+          npm run deploy  # Ensure this script exists in your package.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GitHub token for authentication
