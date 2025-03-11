@@ -1,7 +1,0 @@
-fastapi
-uvicorn
-supabase
-dotenv
-datetime
-requests
-psutil
