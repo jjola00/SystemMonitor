@@ -34,7 +34,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build
-          path: frontend/build/  # Adjust path to the build directory
+          path: frontend/build/  
 
   deploy:
     environment:
@@ -43,7 +43,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3  # Ensure the repository is checked out
+        uses: actions/checkout@v3  
 
       - name: Setup Pages
         uses: actions/configure-pages@v3
@@ -52,7 +52,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build
-          path: frontend/build/  # Adjust path to the build directory
+          path: frontend/build/  
 
       - name: Deploy
         run: |
