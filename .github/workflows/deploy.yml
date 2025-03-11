@@ -29,17 +29,18 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: |
-            npm install  # Install project dependencies
+        run: npm install  # Install project dependencies
+        working-directory: frontend  # Specify the working directory
 
       - name: Build project
         run: npm run build  # Build the project
+        working-directory: frontend  # Specify the working directory
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build
-          path: build/
+          path: frontend/build/  # Adjust path to the build directory
 
   deploy:
     environment:
@@ -54,11 +55,11 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: build
-          path: build/
+          path: frontend/build/  # Adjust path to the build directory
 
       - name: Deploy to GitHub Pages
         id: deployment
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build
+          publish_dir: ./frontend/build  # Adjust path to the build directory
