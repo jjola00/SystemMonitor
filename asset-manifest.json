@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/SystemMonitor/static/css/main.a4eca520.css",
+    "main.js": "/SystemMonitor/static/js/main.f96bdee3.js",
+    "index.html": "/SystemMonitor/index.html",
+    "main.a4eca520.css.map": "/SystemMonitor/static/css/main.a4eca520.css.map",
+    "main.f96bdee3.js.map": "/SystemMonitor/static/js/main.f96bdee3.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.a4eca520.css",
+    "static/js/main.f96bdee3.js"
+  ]
+}
