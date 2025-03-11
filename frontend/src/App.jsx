@@ -8,10 +8,10 @@ import {
   Link, 
   ErrorContainer,
   RetryButton
-} from './styles/StyledComponents';
-import Chart from './components/Chart';
-import Gauge from './components/Gauge';
-import Table from './components/Table';
+} from './styles/StyledComponents';  // Fixed import path
+import Chart from './components/Chart';  // Fixed import path
+import Gauge from './components/Gauge';  // Fixed import path
+import Table from './components/Table';  // Fixed import path
 
 function App() {
   const [systemMetrics, setSystemMetrics] = useState([]);
