@@ -1,6 +1,6 @@
-import React from 'react';
-import { GaugeComponent } from 'react-gauge-component';
-import styled from 'styled-components';
+import React from "react";
+import { GaugeComponent } from "react-gauge-component";
+import styled from "styled-components";
 
 const GaugeWrapper = styled.div`
   text-align: center;
@@ -23,25 +23,42 @@ const GaugeWrapper = styled.div`
   }
 `;
 
-const Gauge = ({ title, value, minValue, maxValue, unit, metricType = 'system' }) => {
+const ValueBox = styled.div`
+  position: absolute;
+  top: -10px; /* Moves the value box slightly higher */
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #333;
+  background: #fff;
+  padding: 5px 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  z-index: 2;
+`;
+
+const Gauge = ({ title, value, minValue, maxValue, unit, metricType = "system" }) => {
   // Different color schemes based on metric type
   const getColorScheme = () => {
-    switch(metricType) {
-      case 'weather':
-        return ['#5BE12C', '#F7B801', '#EA4228']; // Cold to hot
-      case 'crypto':
-        return ['#EA4228', '#F7B801', '#5BE12C']; // Red to green (for price)
+    switch (metricType) {
+      case "weather":
+        return ["#5BE12C", "#F7B801", "#EA4228"];
+      case "crypto":
+        return ["#EA4228", "#F7B801", "#5BE12C"];
       default:
-        return ['#5BE12C', '#F7B801', '#EA4228']; // Green to red (for system)
+        return ["#5BE12C", "#F7B801", "#EA4228"];
     }
   };
 
   // Format the value display
   const formatValue = (val) => {
-    switch(metricType) {
-      case 'weather':
+    switch (metricType) {
+      case "weather":
         return `${val.toFixed(1)}${unit}`;
-      case 'crypto':
+      case "crypto":
         return `${unit}${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       default:
         return `${val.toFixed(1)}${unit}`;
@@ -51,31 +68,32 @@ const Gauge = ({ title, value, minValue, maxValue, unit, metricType = 'system' }
   return (
     <GaugeWrapper>
       <h3>{title}</h3>
-      <GaugeComponent
-        value={value}
-        minValue={minValue}
-        maxValue={maxValue}
-        arc={{
-          width: 0.2,
-          padding: 0.005,
-          cornerRadius: 1,
-          colorArray: getColorScheme(),
-        }}
-        labels={{
-          valueLabel: { formatTextValue: val => formatValue(parseFloat(val)) },
-          tickLabels: {
-            type: 'inner',
-            ticks: [
-              { value: minValue },
-              { value: (maxValue - minValue) / 2 },
-              { value: maxValue },
-            ],
-          },
-        }}
-        pointer={{
-          elastic: true,
-        }}
-      />
+      <div style={{ position: "relative" }}>
+        {/* Moved value box slightly higher */}
+        <ValueBox>{formatValue(value)}</ValueBox>
+
+        <GaugeComponent
+          value={value}
+          minValue={minValue}
+          maxValue={maxValue}
+          arc={{
+            width: 0.2,
+            padding: 0.005,
+            cornerRadius: 1,
+            colorArray: getColorScheme(),
+          }}
+          labels={{
+            valueLabel: { formatTextValue: () => "" }, // Hides the big number
+            tickLabels: {
+              type: "inner",
+              ticks: [{ value: minValue }, { value: (maxValue - minValue) / 2 }, { value: maxValue }],
+            },
+          }}
+          pointer={{
+            elastic: true,
+          }}
+        />
+      </div>
     </GaugeWrapper>
   );
 };
