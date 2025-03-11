@@ -4,38 +4,35 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3  # Use the latest version
+        uses: actions/checkout@v3
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'  # Use Node.js version 16
+          node-version: '16'
 
       - name: Install dependencies
         run: |
-          cd frontend  # Change to the frontend directory
-          npm ci  # Install project dependencies
-          npm install gh-pages --save-dev  # Ensure gh-pages is installed
+          cd frontend
+          npm ci
+          npm install gh-pages --save-dev
 
       - name: Build project
         run: |
-          cd frontend  # Change to the frontend directory
-          npm run build  # Build the project
+          cd frontend
+          npm run build
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build
-          path: frontend/build/  # Adjust path to the build directory
+          path: frontend/build/
 
   deploy:
     environment:
@@ -44,30 +41,30 @@ jobs:
     needs: build
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3  # Ensure the repository is checked out
+        uses: actions/checkout@v3
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'  # Use Node.js version 16
+          node-version: '16'
 
       - name: Install dependencies
         run: |
-          cd frontend  # Change to the frontend directory
-          npm ci  # Install project dependencies
-          npm install gh-pages --save-dev  # Ensure gh-pages is installed
+          cd frontend
+          npm ci
+          npm install gh-pages --save-dev
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: build
-          path: frontend/build/  # Adjust path to the build directory
+          path: frontend/build/
 
       - name: Deploy to GitHub Pages
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          cd frontend  # Change to the frontend directory
-          npm run deploy  # Ensure this script exists in your package.json
+          cd frontend
+          npm run deploy
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GitHub token for authentication
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
