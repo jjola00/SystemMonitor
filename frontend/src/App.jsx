@@ -115,20 +115,23 @@ function App() {
       setCommandStatus('Please enter a command.');
       return;
     }
-
+  
     try {
+      const payload = { command }; // Ensure this matches the backend's expected format
+      console.log('Sending payload:', payload); // Log the payload
+  
       const response = await fetch(`https://my-fastapi-backend-miau.onrender.com/api/command/test`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ command }),
+        body: JSON.stringify(payload),
       });
-
+  
       if (!response.ok) {
         throw new Error(`Failed to send command: ${response.status}`);
       }
-
+  
       const data = await response.json();
       setCommandStatus(data.message);
       setCommand(''); // Clear the input field
