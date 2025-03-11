@@ -23,7 +23,31 @@ const GaugeWrapper = styled.div`
   }
 `;
 
-const Gauge = ({ title, value, minValue, maxValue, unit }) => {
+const Gauge = ({ title, value, minValue, maxValue, unit, metricType = 'system' }) => {
+  // Different color schemes based on metric type
+  const getColorScheme = () => {
+    switch(metricType) {
+      case 'weather':
+        return ['#5BE12C', '#F7B801', '#EA4228']; // Cold to hot
+      case 'crypto':
+        return ['#EA4228', '#F7B801', '#5BE12C']; // Red to green (for price)
+      default:
+        return ['#5BE12C', '#F7B801', '#EA4228']; // Green to red (for system)
+    }
+  };
+
+  // Format the value display
+  const formatValue = (val) => {
+    switch(metricType) {
+      case 'weather':
+        return `${val.toFixed(1)}${unit}`;
+      case 'crypto':
+        return `${unit}${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      default:
+        return `${val.toFixed(1)}${unit}`;
+    }
+  };
+
   return (
     <GaugeWrapper>
       <h3>{title}</h3>
@@ -35,10 +59,10 @@ const Gauge = ({ title, value, minValue, maxValue, unit }) => {
           width: 0.2,
           padding: 0.005,
           cornerRadius: 1,
-          colorArray: ['#5BE12C', '#EA4228'], // Gradient from green to red
+          colorArray: getColorScheme(),
         }}
         labels={{
-          valueLabel: { formatTextValue: value => `${value}${unit}` },
+          valueLabel: { formatTextValue: val => formatValue(parseFloat(val)) },
           tickLabels: {
             type: 'inner',
             ticks: [

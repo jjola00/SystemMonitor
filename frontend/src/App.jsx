@@ -28,25 +28,34 @@ function App() {
     fetchAllMetrics();
   }, []);
 
-  // Fetch all metrics (history)
   const fetchAllMetrics = async () => {
     try {
-      const [systemResponse, weatherResponse, cryptoResponse] = await Promise.all([
-        fetch('/api/metrics/system'),
-        fetch('/api/metrics/weather'),
-        fetch('/api/metrics/crypto')
-      ]);
-
-      if (!systemResponse.ok || !weatherResponse.ok || !cryptoResponse.ok) {
-        throw new Error('Failed to fetch metrics');
+      // First, get all responses
+      const systemResponse = await fetch('/api/metrics/system');
+      const weatherResponse = await fetch('/api/metrics/weather');
+      const cryptoResponse = await fetch('/api/metrics/crypto');
+  
+      // Check if responses are OK
+      if (!systemResponse.ok) {
+        throw new Error(`System metrics fetch failed: ${systemResponse.status}`);
       }
-
-      const [systemData, weatherData, cryptoData] = await Promise.all([
-        systemResponse.json(),
-        weatherResponse.json(),
-        cryptoResponse.json()
-      ]);
-
+      if (!weatherResponse.ok) {
+        throw new Error(`Weather metrics fetch failed: ${weatherResponse.status}`);
+      }
+      if (!cryptoResponse.ok) {
+        throw new Error(`Crypto metrics fetch failed: ${cryptoResponse.status}`);
+      }
+  
+      // Then parse the JSON from each response
+      const systemData = await systemResponse.json();
+      const weatherData = await weatherResponse.json();
+      const cryptoData = await cryptoResponse.json();
+  
+      console.log('System data:', systemData);
+      console.log('Weather data:', weatherData);
+      console.log('Crypto data:', cryptoData);
+  
+      // Set the state variables
       setSystemMetrics(systemData);
       setWeatherMetrics(weatherData);
       setCryptoMetrics(cryptoData);
@@ -56,22 +65,27 @@ function App() {
     }
   };
 
-  // Upload metrics
   const uploadMetrics = async () => {
     setLoading(true);
     setError(null);
-
+  
     try {
-      const [systemUpload, weatherUpload, cryptoUpload] = await Promise.all([
-        fetch('/api/metrics/system/upload', { method: 'POST' }),
-        fetch('/api/metrics/weather/upload', { method: 'POST' }),
-        fetch('/api/metrics/crypto/upload', { method: 'POST' })
-      ]);
-
-      if (!systemUpload.ok || !weatherUpload.ok || !cryptoUpload.ok) {
-        throw new Error('Failed to upload metrics');
+      // Make the upload requests one by one
+      const systemUpload = await fetch('/api/metrics/system/upload', { method: 'POST' });
+      const weatherUpload = await fetch('/api/metrics/weather/upload', { method: 'POST' });
+      const cryptoUpload = await fetch('/api/metrics/crypto/upload', { method: 'POST' });
+  
+      // Check if they were successful
+      if (!systemUpload.ok) {
+        throw new Error(`System metrics upload failed: ${systemUpload.status}`);
       }
-
+      if (!weatherUpload.ok) {
+        throw new Error(`Weather metrics upload failed: ${weatherUpload.status}`);
+      }
+      if (!cryptoUpload.ok) {
+        throw new Error(`Crypto metrics upload failed: ${cryptoUpload.status}`);
+      }
+  
       // After uploading, fetch the updated metrics
       await fetchAllMetrics();
     } catch (err) {
@@ -85,14 +99,16 @@ function App() {
   // Start uploading metrics when isUploading is true
   useEffect(() => {
     if (isUploading) {
-      const intervalId = setInterval(uploadMetrics, 30000); // Upload every 30 seconds
+      const intervalId = setInterval(uploadMetrics, 10000); // Upload every 10 seconds
       return () => clearInterval(intervalId); // Cleanup interval on component unmount
     }
   }, [isUploading]);
 
+  const validSystemMetrics = systemMetrics.filter(metric => metric.metrics !== null);
+
   // Get the latest CPU and RAM usage values
-  const latestCpuUsage = systemMetrics.find(metric => metric.metrics?.name === 'cpu_usage')?.value || 0;
-  const latestRamUsage = systemMetrics.find(metric => metric.metrics?.name === 'ram_usage')?.value || 0;
+  const latestCpuUsage = validSystemMetrics.find(metric => metric.metrics?.name === 'cpu_usage')?.value || 0;
+  const latestRamUsage = validSystemMetrics.find(metric => metric.metrics?.name === 'ram_usage')?.value || 0;
 
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>

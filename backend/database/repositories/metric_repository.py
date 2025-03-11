@@ -103,10 +103,24 @@ class MetricRepository:
         Fetch latest metrics by names.
         """
         log_info(f"Executing database query for metrics: {metric_names}")
+        
+        # First, get the metric IDs for the requested names
+        metric_ids_response = db_client.table("metrics") \
+            .select("id") \
+            .in_("name", metric_names) \
+            .execute()
+        
+        if not metric_ids_response.data:
+            return {"message": f"No metrics found for {metric_names}"}
+        
+        metric_ids = [item["id"] for item in metric_ids_response.data]
+        
+        # Then fetch the actual metrics using these IDs
         response = db_client.table("device_metrics") \
             .select("value, timestamp, metrics(name)") \
-            .in_("metrics.name", metric_names) \
+            .in_("metric_id", metric_ids) \
             .order("timestamp", desc=True) \
             .limit(limit) \
             .execute()
+        
         return response.data or {"message": f"No metrics found for {metric_names}"}
