@@ -1,3 +1,4 @@
+/* frontend/src/components/Gauge.jsx */
 import React from 'react';
 import GaugeComponent from 'react-gauge-component';
 import { GaugeContainer, GridContainer, Card, MetricHeading } from '../styles/StyledComponents';
@@ -26,6 +27,13 @@ const Gauge = ({ systemMetrics, weatherMetrics, loading }) => {
 
   if (loading) return <Loading />;
 
+  // Ensure arc delimiters are within valid range
+  const getArcDelimiters = (min, max) => {
+    const range = max - min;
+    if (range <= 0) return [min, max]; // Prevent invalid range
+    return [Math.max(min, min + range * 0.3), Math.min(max, min + range * 0.7)];
+  };
+
   return (
     <>
       <MetricHeading>Current System Status</MetricHeading>
@@ -51,7 +59,7 @@ const Gauge = ({ systemMetrics, weatherMetrics, loading }) => {
                   gaugeConfigs.cpu.colors.medium,
                   gaugeConfigs.cpu.colors.high
                 ],
-                arcDelimiters: [30, 70]
+                arcDelimiters: getArcDelimiters(0, 100)
               }}
               maxValue={100}
               minValue={0}
@@ -80,7 +88,7 @@ const Gauge = ({ systemMetrics, weatherMetrics, loading }) => {
                   gaugeConfigs.ram.colors.medium, 
                   gaugeConfigs.ram.colors.high
                 ],
-                arcDelimiters: [30, 70]
+                arcDelimiters: getArcDelimiters(0, 100)
               }}
               maxValue={100}
               minValue={0}
@@ -109,10 +117,11 @@ const Gauge = ({ systemMetrics, weatherMetrics, loading }) => {
                   gaugeConfigs.weather.colors.medium,
                   gaugeConfigs.weather.colors.high
                 ],
-                // Fixed: Set arc delimiters within the min-max range of the weather gauge (-10 to 40)
-                arcDelimiters: [5, 25]
+                arcDelimiters: getArcDelimiters(
+                  gaugeConfigs.weather.min,
+                  gaugeConfigs.weather.max
+                )
               }}
-              // Explicitly set min/max values from config to ensure consistency
               maxValue={gaugeConfigs.weather.max}
               minValue={gaugeConfigs.weather.min}
             />

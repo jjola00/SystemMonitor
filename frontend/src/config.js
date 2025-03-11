@@ -1,3 +1,5 @@
+//frontend/src/config.js
+
 // Base URL for API calls
 export const apiUrl = 'http://localhost:8000'; // Change this if your FastAPI backend runs on a different port
 

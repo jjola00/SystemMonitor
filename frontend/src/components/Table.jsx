@@ -1,3 +1,4 @@
+/*frontend/src/components/Table.jsx*/
 import React from 'react';
 import styled from 'styled-components';
 import { MetricHeading } from '../styles/StyledComponents';

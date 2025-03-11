@@ -1,3 +1,5 @@
+/* frontend/src/components/Chart.jsx */
+
 import React from 'react';
 import {
   Chart as ChartJS,

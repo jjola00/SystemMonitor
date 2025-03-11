@@ -1,3 +1,4 @@
+/*frontend/src/components/Loading.jsx*/
 import React from 'react';
 import styled from 'styled-components';
 
