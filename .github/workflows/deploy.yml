@@ -67,7 +67,6 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git remote set-url origin https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           cd frontend  # Change to the frontend directory
           npm run deploy  # Ensure this script exists in your package.json
         env:

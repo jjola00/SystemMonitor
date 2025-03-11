@@ -21,7 +21,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "deploy": "gh-pages -d build",
+    "deploy": "gh-pages -d build -r https://$GITHUB_TOKEN@github.com/jjola00/SystemMonitor.git",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -31,7 +31,7 @@
       "react-app/jest"
     ]
   },
-  "homepage": "https://jjola00.github.io/your-repository-name/",
+  "homepage": "https://jjola00.github.io/SystemMonitor/",
   "browserslist": {
     "production": [
       ">0.2%",
