@@ -37,9 +37,13 @@ jobs:
       name: github-pages
     runs-on: ubuntu-latest
     needs: build
+    permissions:
+      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
+        with:
+          persist-credentials: false  # Important for gh-pages deployment
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Set up Node.js
@@ -56,11 +60,7 @@ jobs:
           cd frontend
           npm install gh-pages
       - name: Deploy
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git remote set-url origin https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-          cd frontend
-          npm run deploy
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: frontend/build
+          branch: gh-pages
