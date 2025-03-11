@@ -17,21 +17,24 @@ import Chart from './components/Chart';
 import Gauge from './components/Gauge';
 import Table from './components/Table';
 import Loading from './components/Loading';
+import IconMetric from './components/IconMetric'; // Import our new simple component
 
 function App() {
   const [systemMetrics, setSystemMetrics] = useState([]);
   const [weatherMetrics, setWeatherMetrics] = useState([]);
   const [cryptoMetrics, setCryptoMetrics] = useState([]);
-  const [loading, setLoading] = useState(false); // For upload process
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [isUploading, setIsUploading] = useState(false); // State to track if uploading is active
-  const [command, setCommand] = useState(''); // State for command input
-  const [commandStatus, setCommandStatus] = useState(''); // State for command status message
+  const [isUploading, setIsUploading] = useState(false);
+  const [command, setCommand] = useState('');
+  const [commandStatus, setCommandStatus] = useState('');
 
   // Fetch metrics history on initial load
   useEffect(() => {
     fetchAllMetrics();
   }, []);
+
+  // ... keeping all your existing fetch and upload functions ...
 
   const fetchAllMetrics = async () => {
     try {
@@ -55,10 +58,6 @@ function App() {
       const systemData = await systemResponse.json();
       const weatherData = await weatherResponse.json();
       const cryptoData = await cryptoResponse.json();
-  
-      console.log('System data:', systemData);
-      console.log('Weather data:', weatherData);
-      console.log('Crypto data:', cryptoData);
   
       // Set the state variables
       setSystemMetrics(systemData);
@@ -99,7 +98,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }, []); // Add dependencies if needed
+  }, []); 
 
   // Start uploading metrics when isUploading is true
   useEffect(() => {
@@ -107,7 +106,7 @@ function App() {
       const intervalId = setInterval(uploadMetrics, 10000); // Upload every 10 seconds
       return () => clearInterval(intervalId); // Cleanup interval on component unmount
     }
-  }, [isUploading, uploadMetrics]); // Include uploadMetrics in the dependency array
+  }, [isUploading, uploadMetrics]);
 
   // Function to send a command to the device
   const sendCommand = async () => {
@@ -117,9 +116,8 @@ function App() {
     }
   
     try {
-      const payload = { command }; // Ensure this matches the backend's expected format
-      console.log('Sending payload:', payload); // Log the payload
-  
+      const payload = { command };
+      
       const response = await fetch(`https://my-fastapi-backend-miau.onrender.com/api/command/test`, {
         method: 'POST',
         headers: {
@@ -134,7 +132,7 @@ function App() {
   
       const data = await response.json();
       setCommandStatus(data.message);
-      setCommand(''); // Clear the input field
+      setCommand('');
     } catch (err) {
       console.error('Error sending command:', err);
       setCommandStatus(`Error: ${err.message}`);
@@ -146,11 +144,12 @@ function App() {
   // Get the latest CPU and RAM usage values
   const latestCpuUsage = validSystemMetrics.find(metric => metric.metrics?.name === 'cpu_usage')?.value || 0;
   const latestRamUsage = validSystemMetrics.find(metric => metric.metrics?.name === 'ram_usage')?.value || 0;
+  const latestTemperature = weatherMetrics.length > 0 ? (weatherMetrics[weatherMetrics.length - 1]?.value || 0) : 0;
+  const latestBitcoinPrice = cryptoMetrics.length > 0 ? (cryptoMetrics[cryptoMetrics.length - 1]?.value || 0) : 0;
 
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Container>
-        {/* Render the Loading component if loading is true */}
         {loading && <Loading />}
 
         <HeaderBanner>System Monitoring Dashboard</HeaderBanner>
@@ -163,7 +162,6 @@ function App() {
           </NavList>
         </Navigation>
 
-        {/* Button to start/stop uploading metrics */}
         <Button 
           onClick={() => setIsUploading(!isUploading)} 
           style={{ marginBottom: '20px' }}
@@ -171,7 +169,6 @@ function App() {
           {isUploading ? 'Stop Uploading Metrics' : 'Start Uploading Metrics'}
         </Button>
 
-        {/* Section for sending commands */}
         <CommandContainer>
           <h3>Send Command to Device</h3>
           <CommandInput
@@ -191,7 +188,6 @@ function App() {
           </ErrorContainer>
         )}
 
-        {/* Gauges for CPU and RAM Usage */}
         <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
           <Gauge 
             title="CPU Usage" 
@@ -199,6 +195,7 @@ function App() {
             minValue={0} 
             maxValue={100} 
             unit="%"
+            style={{ flex: 1 }}
           />
           <Gauge 
             title="RAM Usage" 
@@ -206,6 +203,23 @@ function App() {
             minValue={0} 
             maxValue={100} 
             unit="%"
+            style={{ flex: 1 }}
+          />
+          <IconMetric 
+            title="Bitcoin Price" 
+            value={latestBitcoinPrice} 
+            unit="$"
+            icon="$"
+            color="#f7931a"
+            style={{ flex: 1 }}
+          />
+          <IconMetric 
+            title="Temperature" 
+            value={latestTemperature} 
+            unit="°C"
+            icon="🌡️"
+            color={latestTemperature > 30 ? '#ff4500' : latestTemperature > 20 ? '#ff9800' : '#2196F3'}
+            style={{ flex: 1 }}
           />
         </div>
         
