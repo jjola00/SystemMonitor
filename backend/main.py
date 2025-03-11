@@ -1,18 +1,23 @@
-# backend/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api import system_router, weather_router, crypto_router
 
 app = FastAPI(title="System Monitor API")
 
+# Update CORS settings
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080"], 
+    allow_origins=[
+        "http://localhost:8080",  # For local development
+        "https://your-github-username.github.io",  # Your GitHub Pages URL
+        "https://your-render-app-url.onrender.com",  # Your Render backend URL
+    ],
     allow_credentials=True,
-    allow_methods=["*"], 
-    allow_headers=["*"], 
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
 )
 
+# Include routers
 app.include_router(system_router.router, prefix="/api")
 app.include_router(weather_router.router, prefix="/api")
 app.include_router(crypto_router.router, prefix="/api")
