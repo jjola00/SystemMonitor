@@ -2,7 +2,8 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ "main" ]  # Change this to your main branch name if different
+    branches: 
+      - "main" 
   workflow_dispatch:
 
 permissions:
@@ -19,27 +20,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
-        
+        uses: actions/checkout@v2  # Updated to v2 to avoid deprecated actions
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'  # Choose your Node.js version
+          node-version: '18'  
           cache: 'npm'
-      
+
       - name: Install dependencies
-        run: npm ci
+        run: npm install 
       
       - name: Build project
-        run: npm run build  # Use your actual build command
-      
-      - name: Setup Pages
-        uses: actions/configure-pages@v3
-      
+        run: npm run build 
+
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v2  
+
         with:
-          path: './build'  # Adjust this to your build output directory
+          path: './build'  
 
   deploy:
     environment:
@@ -50,4 +49,6 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v2 
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
