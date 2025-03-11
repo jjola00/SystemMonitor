@@ -88,21 +88,20 @@ export const Card = styled.div`
 
 // Button components
 export const Button = styled.button`
-  background-color: #009879;
+  background-color: ${props => props.isFetching ? '#f44336' : '#009879'};
   color: white;
   border: none;
-  padding: 8px 16px;
+  padding: 10px 20px;
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
   margin: 10px 0;
   transition: background-color 0.3s;
-  
+
   &:hover {
-    background-color: #007965;
+    background-color: ${props => props.isFetching ? '#d32f2f' : '#007965'};
   }
 `;
-
 export const RetryButton = styled(Button)`
   background-color: #f44336;
   
