@@ -36,12 +36,6 @@ jobs:
         run: npm run build  # Build the project
         working-directory: frontend  # Specify the working directory
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build
-          path: frontend/build/  # Adjust path to the build directory
-
   deploy:
     environment:
       name: github-pages
