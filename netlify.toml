@@ -1,0 +1,14 @@
+[build]
+  command = "# no build command needed if you're not building your backend"
+  functions = "netlify/functions"
+  publish = "."  # Or specify a build directory if needed
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/"
+  to = "/.netlify/functions/hello"
+  status = 200
