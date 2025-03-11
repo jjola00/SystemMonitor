@@ -23,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd frontend  # Change to the frontend directory
-          npm install  # Install project dependencies
+          npm ci  # Install project dependencies
 
       - name: Build project
         run: |
@@ -34,7 +34,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build
-          path: frontend/build/  
+          path: frontend/build/  # Adjust path to the build directory
 
   deploy:
     environment:
@@ -43,7 +43,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3  
+        uses: actions/checkout@v3  # Ensure the repository is checked out
 
       - name: Setup Pages
         uses: actions/configure-pages@v3
@@ -52,7 +52,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build
-          path: frontend/build/  
+          path: frontend/build/  # Adjust path to the build directory
 
       - name: Deploy
         run: |
