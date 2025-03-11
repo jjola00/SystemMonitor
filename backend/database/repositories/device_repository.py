@@ -17,3 +17,28 @@ class DeviceRepository:
         insert_response = db_client.table("devices").insert(new_device).execute()
         
         return insert_response.data[0]["id"] if insert_response.data else None
+    
+    def store_device_command(self, device_id: str, command: str):
+        """
+        Store a command for a specific device.
+        """
+        db_client.table("device_commands").insert({
+            "device_id": device_id,
+            "command": command,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }).execute()
+
+    def fetch_device_command(self, device_id: str):
+        """
+        Fetch the latest command for a specific device.
+        """
+        response = db_client.table("device_commands") \
+            .select("command") \
+            .eq("device_id", device_id) \
+            .order("timestamp", desc=True) \
+            .limit(1) \
+            .execute()
+        
+        if response.data:
+            return response.data[0]["command"]
+        return None

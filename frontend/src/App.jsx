@@ -8,7 +8,10 @@ import {
   Link, 
   ErrorContainer,
   RetryButton,
-  Button
+  Button,
+  CommandContainer,
+  CommandInput,
+  CommandButton
 } from './styles/StyledComponents';
 import Chart from './components/Chart';
 import Gauge from './components/Gauge';
@@ -22,6 +25,8 @@ function App() {
   const [loading, setLoading] = useState(false); // For upload process
   const [error, setError] = useState(null);
   const [isUploading, setIsUploading] = useState(false); // State to track if uploading is active
+  const [command, setCommand] = useState(''); // State for command input
+  const [commandStatus, setCommandStatus] = useState(''); // State for command status message
 
   // Fetch metrics history on initial load
   useEffect(() => {
@@ -104,6 +109,35 @@ function App() {
     }
   }, [isUploading, uploadMetrics]); // Include uploadMetrics in the dependency array
 
+  // Function to send a command to the device
+  const sendCommand = async () => {
+    if (!command) {
+      setCommandStatus('Please enter a command.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`https://my-fastapi-backend-miau.onrender.com/api/command/test`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ command }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to send command: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setCommandStatus(data.message);
+      setCommand(''); // Clear the input field
+    } catch (err) {
+      console.error('Error sending command:', err);
+      setCommandStatus(`Error: ${err.message}`);
+    }
+  };
+
   const validSystemMetrics = systemMetrics.filter(metric => metric.metrics !== null);
 
   // Get the latest CPU and RAM usage values
@@ -133,6 +167,19 @@ function App() {
         >
           {isUploading ? 'Stop Uploading Metrics' : 'Start Uploading Metrics'}
         </Button>
+
+        {/* Section for sending commands */}
+        <CommandContainer>
+          <h3>Send Command to Device</h3>
+          <CommandInput
+            type="text"
+            placeholder="Enter command (e.g., Restart App)"
+            value={command}
+            onChange={(e) => setCommand(e.target.value)}
+          />
+          <CommandButton onClick={sendCommand}>Send Command</CommandButton>
+          {commandStatus && <p>{commandStatus}</p>}
+        </CommandContainer>
 
         {error && (
           <ErrorContainer>

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api import system_router, weather_router, crypto_router
+from api import system_router, weather_router, crypto_router, command_router
 
 app = FastAPI(title="System Monitor API")
 
@@ -22,3 +22,4 @@ app.add_middleware(
 app.include_router(system_router.router, prefix="/api")
 app.include_router(weather_router.router, prefix="/api")
 app.include_router(crypto_router.router, prefix="/api")
+app.include_router(command_router.router, prefix="/api") 
