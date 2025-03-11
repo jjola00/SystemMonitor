@@ -31,3 +31,5 @@ dist/
 
 # local dev files
 local_settings.py
+# Local Netlify folder
+.netlify
