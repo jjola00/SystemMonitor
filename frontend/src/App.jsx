@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { 
   Container, 
@@ -65,7 +65,7 @@ function App() {
     }
   };
 
-  const uploadMetrics = async () => {
+  const uploadMetrics = useCallback(async () => {
     setLoading(true);
     setError(null);
   
@@ -94,7 +94,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []); // Add dependencies if needed
 
   // Start uploading metrics when isUploading is true
   useEffect(() => {
@@ -102,7 +102,7 @@ function App() {
       const intervalId = setInterval(uploadMetrics, 10000); // Upload every 10 seconds
       return () => clearInterval(intervalId); // Cleanup interval on component unmount
     }
-  }, [isUploading]);
+  }, [isUploading, uploadMetrics]); // Include uploadMetrics in the dependency array
 
   const validSystemMetrics = systemMetrics.filter(metric => metric.metrics !== null);
 
@@ -113,6 +113,9 @@ function App() {
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Container>
+        {/* Render the Loading component if loading is true */}
+        {loading && <Loading />}
+
         <HeaderBanner>System Monitoring Dashboard</HeaderBanner>
         <Navigation>
           <NavList>
