@@ -83,7 +83,7 @@ const Gauge = ({ title, value, minValue, maxValue, unit, metricType = "system" }
             colorArray: getColorScheme(),
           }}
           labels={{
-            valueLabel: { formatTextValue: () => "" }, // Hides the big number
+            valueLabel: { formatTextValue: () => "" },
             tickLabels: {
               type: "inner",
               ticks: [{ value: minValue }, { value: (maxValue - minValue) / 2 }, { value: maxValue }],
