@@ -31,9 +31,9 @@ function App() {
   const fetchAllMetrics = async () => {
     try {
       // First, get all responses
-      const systemResponse = await fetch('/api/metrics/system');
-      const weatherResponse = await fetch('/api/metrics/weather');
-      const cryptoResponse = await fetch('/api/metrics/crypto');
+      const systemResponse = await fetch('https://my-fastapi-backend-miau.onrender.com/api/metrics/system');
+      const weatherResponse = await fetch('https://my-fastapi-backend-miau.onrender.com/api/metrics/weather');
+      const cryptoResponse = await fetch('https://my-fastapi-backend-miau.onrender.com/api/metrics/crypto');
   
       // Check if responses are OK
       if (!systemResponse.ok) {
@@ -71,9 +71,9 @@ function App() {
   
     try {
       // Make the upload requests one by one
-      const systemUpload = await fetch('/api/metrics/system/upload', { method: 'POST' });
-      const weatherUpload = await fetch('/api/metrics/weather/upload', { method: 'POST' });
-      const cryptoUpload = await fetch('/api/metrics/crypto/upload', { method: 'POST' });
+      const systemUpload = await fetch('https://my-fastapi-backend-miau.onrender.com//api/metrics/system/upload', { method: 'POST' });
+      const weatherUpload = await fetch('https://my-fastapi-backend-miau.onrender.com//api/metrics/weather/upload', { method: 'POST' });
+      const cryptoUpload = await fetch('https://my-fastapi-backend-miau.onrender.com/api/metrics/crypto/upload', { method: 'POST' });
   
       // Check if they were successful
       if (!systemUpload.ok) {

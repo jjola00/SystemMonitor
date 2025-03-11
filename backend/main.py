@@ -10,7 +10,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:8080",  # For local development
         "https://jjola00.github.io",  # Your GitHub Pages URL
-        "https://my-fastapi-backend-miau.onrender.com/.onrender.com",  # Your Render backend URL
+        "https://my-fastapi-backend-miau.onrender.com",  # Your Render backend URL
     ],
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods
