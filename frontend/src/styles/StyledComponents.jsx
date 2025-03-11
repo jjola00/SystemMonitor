@@ -143,3 +143,32 @@ export const MetricHeading = styled.h2`
   padding-bottom: 10px;
   margin-top: 30px;
 `;
+
+export const CommandContainer = styled.div`
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+`;
+
+export const CommandInput = styled.input`
+  padding: 10px;
+  margin-right: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 300px;
+`;
+
+export const CommandButton = styled.button`
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #0056b3;
+  }
+`;
