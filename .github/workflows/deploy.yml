@@ -3,7 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: 
-      - "main" 
+      - "main"
   workflow_dispatch:
 
 permissions:
@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2  # Updated to v2 to avoid deprecated actions
+        uses: actions/checkout@v2  # Using the correct version of the checkout action
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -29,16 +29,15 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install 
+        run: npm install  # Installing dependencies
       
       - name: Build project
-        run: npm run build 
+        run: npm run build  # Building the project
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v2  
-
+        uses: actions/upload-pages-artifact@v1  # Using version v1 of the upload-pages-artifact action
         with:
-          path: './build'  
+          path: './build'  # Adjust this to your build output directory
 
   deploy:
     environment:
@@ -49,6 +48,6 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2 
+        uses: actions/deploy-pages@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
