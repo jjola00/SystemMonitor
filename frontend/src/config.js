@@ -1,5 +1,3 @@
-//frontend/src/config.js
-
 // Base URL for API calls
 export const apiUrl = 'http://localhost:8000'; // Change this if your FastAPI backend runs on a different port
 
@@ -32,7 +30,6 @@ export const chartColors = {
 // External trading sites for crypto
 export const tradingSites = {
   BTC: 'https://www.binance.com/en/trade/BTC_USDT',
-  ETH: 'https://www.binance.com/en/trade/ETH_USDT'
 };
 
 // Gauge configurations
@@ -72,8 +69,8 @@ export const gaugeConfigs = {
     }
   },
   weather: {
-    min: -10,
-    max: 40,
+    min: -20,
+    max: 50,
     arc: {
       width: 0.2,
       padding: 0.05,
@@ -83,9 +80,7 @@ export const gaugeConfigs = {
       elastic: true
     },
     colors: {
-      low: '#2196F3',   // Cold/Blue
-      medium: '#4CAF50', // Moderate/Green
-      high: '#F44336'    // Hot/Red
+      arcColors: ['#2196F3', '#4CAF50', '#F44336']  // Gradient from blue to green to red
     }
   }
 };

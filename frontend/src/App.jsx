@@ -16,8 +16,8 @@ import Table from './components/Table';  // Fixed import path
 
 function App() {
   const [systemMetrics, setSystemMetrics] = useState([]);
-  const [weatherMetrics, setWeatherMetrics] = useState([]);
-  const [cryptoMetrics, setCryptoMetrics] = useState([]);
+  const [weatherMetrics] = useState([]);
+  const [cryptoMetrics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -26,24 +26,10 @@ function App() {
     setError(null);
     
     try {
-      // Fetch system metrics
       const systemResponse = await fetch('/api/metrics/system');
       if (!systemResponse.ok) throw new Error('Failed to fetch system metrics');
       const systemData = await systemResponse.json();
       setSystemMetrics(systemData);
-      
-      // Fetch weather metrics
-      const weatherResponse = await fetch('/api/metrics/weather');
-      if (!weatherResponse.ok) throw new Error('Failed to fetch weather metrics');
-      const weatherData = await weatherResponse.json();
-      setWeatherMetrics(weatherData);
-      
-      // Fetch crypto metrics
-      const cryptoResponse = await fetch('/api/metrics/crypto');
-      if (!cryptoResponse.ok) throw new Error('Failed to fetch crypto metrics');
-      const cryptoData = await cryptoResponse.json();
-      setCryptoMetrics(cryptoData);
-
     } catch (err) {
       console.error('Error fetching metrics:', err);
       setError(err.message);
@@ -63,7 +49,7 @@ function App() {
   }, []);
 
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Container>
         <HeaderBanner>System Monitoring Dashboard</HeaderBanner>
         <Navigation>

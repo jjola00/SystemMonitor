@@ -26,14 +26,7 @@ const Gauge = ({ systemMetrics, weatherMetrics, loading }) => {
   const temperature = getLatestMetricValue(weatherMetrics, 'weather_temp');
 
   if (loading) return <Loading />;
-
-  // Ensure arc delimiters are within valid range
-  const getArcDelimiters = (min, max) => {
-    const range = max - min;
-    if (range <= 0) return [min, max]; // Prevent invalid range
-    return [Math.max(min, min + range * 0.3), Math.min(max, min + range * 0.7)];
-  };
-
+  if (loading) return <Loading />;
   return (
     <>
       <MetricHeading>Current System Status</MetricHeading>
@@ -59,7 +52,6 @@ const Gauge = ({ systemMetrics, weatherMetrics, loading }) => {
                   gaugeConfigs.cpu.colors.medium,
                   gaugeConfigs.cpu.colors.high
                 ],
-                arcDelimiters: getArcDelimiters(0, 100)
               }}
               maxValue={100}
               minValue={0}
@@ -88,7 +80,6 @@ const Gauge = ({ systemMetrics, weatherMetrics, loading }) => {
                   gaugeConfigs.ram.colors.medium, 
                   gaugeConfigs.ram.colors.high
                 ],
-                arcDelimiters: getArcDelimiters(0, 100)
               }}
               maxValue={100}
               minValue={0}
@@ -112,15 +103,7 @@ const Gauge = ({ systemMetrics, weatherMetrics, loading }) => {
               arc={gaugeConfigs.weather.arc}
               pointer={gaugeConfigs.weather.pointer}
               colors={{
-                arcColors: [
-                  gaugeConfigs.weather.colors.low,
-                  gaugeConfigs.weather.colors.medium,
-                  gaugeConfigs.weather.colors.high
-                ],
-                arcDelimiters: getArcDelimiters(
-                  gaugeConfigs.weather.min,
-                  gaugeConfigs.weather.max
-                )
+                arcColors: gaugeConfigs.weather.colors.arcColors
               }}
               maxValue={gaugeConfigs.weather.max}
               minValue={gaugeConfigs.weather.min}
