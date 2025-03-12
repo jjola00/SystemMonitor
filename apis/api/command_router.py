@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from database.db_connection import db_client
-from database.repositories.device_repository import DeviceRepository
+from ..database.repositories.device_repository import DeviceRepository
 from utils.logger import log_info, log_error
 
 router = APIRouter()

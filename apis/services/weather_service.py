@@ -1,4 +1,4 @@
-from database.repositories.metric_repository import MetricRepository
+from ..database.repositories.metric_repository import MetricRepository
 from utils.logger import log_info
 from utils.cache import cache
 from utils.cache_decorators import cached
