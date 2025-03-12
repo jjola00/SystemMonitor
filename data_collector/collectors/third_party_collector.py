@@ -1,5 +1,5 @@
 import requests
-from config.config import Config
+from apis.config.config import Config
 from utils.logger import log_info, log_error
 
 def fetch_weather_metric():
