@@ -1,6 +1,6 @@
 import requests
 from apis.config.config import Config
-from utils.logger import log_info, log_error
+from apis.utils.logger import log_info, log_error
 
 def fetch_weather_metric():
     if not Config.WEATHER_API_URL or not Config.WEATHER_API_KEY:

@@ -1,5 +1,5 @@
 from functools import wraps
-from utils.cache import cache
+from apis.utils.cache import cache
 
 def cached(ttl_seconds=300, key_prefix=""):
     def decorator(func):
