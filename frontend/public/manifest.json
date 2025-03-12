@@ -1,0 +1,8 @@
+{
+    "short_name": "SystemMonitor",
+    "name": "System Monitoring Dashboard",
+    "start_url": ".",
+    "display": "standalone",
+    "theme_color": "#009879",
+    "background_color": "#ffffff"
+  }

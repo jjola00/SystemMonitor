@@ -12,9 +12,10 @@ import {
 } from './styles/StyledComponents';
 import Chart from './components/Chart';
 import Gauge from './components/Gauge';
+import MetricBox from './components/MetricBox'; // New import
 import Table from './components/Table';
 import Loading from './components/Loading';
-import { FaTemperatureHigh, FaBitcoin } from 'react-icons/fa'; // Add icons
+import { FaTemperatureHigh, FaBitcoin } from 'react-icons/fa';
 
 function App() {
   const [systemMetrics, setSystemMetrics] = useState([]);
@@ -122,12 +123,12 @@ function App() {
           </ErrorContainer>
         )}
 
-        {/* Four gauges in a horizontal row */}
+        {/* Four boxes in a horizontal row */}
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', marginBottom: '20px', flexWrap: 'wrap' }}>
-          <Gauge title="CPU Usage" value={latestCpuUsage} minValue={0} maxValue={100} unit="%" icon={<span>💻</span>} />
-          <Gauge title="RAM Usage" value={latestRamUsage} minValue={0} maxValue={100} unit="%" icon={<span>🧠</span>} />
-          <Gauge title="Temperature" value={latestTemp} minValue={-20} maxValue={50} unit="°C" icon={<FaTemperatureHigh />} />
-          <Gauge title="Bitcoin Price" value={latestCrypto} minValue={20000} maxValue={70000} unit="$" icon={<FaBitcoin />} />
+          <Gauge title="CPU Usage" value={latestCpuUsage} minValue={0} maxValue={100} unit="%" />
+          <Gauge title="RAM Usage" value={latestRamUsage} minValue={0} maxValue={100} unit="%" />
+          <MetricBox title="Temperature" value={latestTemp} unit="°C" icon={<FaTemperatureHigh />} />
+          <MetricBox title="Bitcoin Price" value={latestCrypto} unit="$" icon={<FaBitcoin />} />
         </div>
         
         <Routes>
