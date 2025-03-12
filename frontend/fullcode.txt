@@ -1,0 +1,834 @@
+package.json:
+<code>
+{
+    "name": "system-monitoring-dashboard",
+    "version": "0.1.0",
+    "private": true,
+    "dependencies": {
+      "@testing-library/jest-dom": "^5.16.5",
+      "@testing-library/react": "^13.4.0",
+      "@testing-library/user-event": "^13.5.0",
+      "chart.js": "^4.2.1",
+      "chartjs-adapter-date-fns": "^3.0.0",
+      "date-fns": "^2.29.3",
+      "react": "^18.2.0",
+      "react-chartjs-2": "^5.3.0",
+      "react-dom": "^18.2.0",
+      "react-gauge-component": "^1.2.64",
+      "react-icons": "^5.0.1",
+      "react-router-dom": "^6.30.0",
+      "react-scripts": "5.0.1",
+      "styled-components": "^5.3.11",
+      "web-vitals": "^2.1.4"
+    },
+    "scripts": {
+      "start": "react-scripts start",
+      "build": "react-scripts build",
+      "deploy": "gh-pages -d build",
+      "test": "react-scripts test",
+      "eject": "react-scripts eject"
+    },
+    "eslintConfig": {
+      "extends": ["react-app", "react-app/jest"]
+    },
+    "homepage": "https://jjola00.github.io/SystemMonitor",
+    "browserslist": {
+      "production": [">0.2%", "not dead", "not op_mini all"],
+      "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
+    },
+    "proxy": "http://localhost:10000",
+    "devDependencies": {
+      "gh-pages": "^6.3.0"
+    }
+  }
+</code>
+
+src\App.jsx:
+<code>
+import React, { useState, useEffect, useCallback } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { 
+  Container, 
+  HeaderBanner, 
+  Navigation, 
+  NavList, 
+  Link, 
+  ErrorContainer,
+  RetryButton,
+  Button
+} from './styles/StyledComponents';
+import Chart from './components/Chart';
+import Gauge from './components/Gauge';
+import MetricBox from './components/IconMetric'; // New import
+import Table from './components/Table';
+import Loading from './components/Loading';
+import { FaTemperatureHigh, FaBitcoin } from 'react-icons/fa';
+
+function App() {
+  const [systemMetrics, setSystemMetrics] = useState([]);
+  const [weatherMetrics, setWeatherMetrics] = useState([]);
+  const [cryptoMetrics, setCryptoMetrics] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  useEffect(() => {
+    fetchAllMetrics();
+  }, []);
+
+  const fetchAllMetrics = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [systemResponse, weatherResponse, cryptoResponse] = await Promise.all([
+        fetch('/api/metrics/system?limit=10'),
+        fetch('/api/metrics/weather?limit=10'),
+        fetch('/api/metrics/crypto?limit=10')
+      ]);
+
+      if (!systemResponse.ok) throw new Error(`System metrics fetch failed: ${systemResponse.status}`);
+      if (!weatherResponse.ok) throw new Error(`Weather metrics fetch failed: ${weatherResponse.status}`);
+      if (!cryptoResponse.ok) throw new Error(`Crypto metrics fetch failed: ${cryptoResponse.status}`);
+
+      const systemData = await systemResponse.json();
+      const weatherData = await weatherResponse.json();
+      const cryptoData = await cryptoResponse.json();
+
+      setSystemMetrics(Array.isArray(systemData) ? systemData : []);
+      setWeatherMetrics(Array.isArray(weatherData) ? weatherData : []);
+      setCryptoMetrics(Array.isArray(cryptoData) ? cryptoData : []);
+    } catch (err) {
+      console.error('Error fetching metrics:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const uploadMetrics = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const systemPayload = { device_name: "test", cpu_usage: Math.random() * 100, ram_usage: Math.random() * 100, timestamp: new Date().toISOString() };
+      const weatherPayload = { temperature: Math.random() * 30 + 5 };
+      const cryptoPayload = { value: Math.random() * 50000 + 20000, unit: "USD" };
+
+      const [systemUpload, weatherUpload, cryptoUpload] = await Promise.all([
+        fetch('/api/metrics/system/upload', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(systemPayload) }),
+        fetch('/api/metrics/weather/upload', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(weatherPayload) }),
+        fetch('/api/metrics/crypto/upload', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cryptoPayload) })
+      ]);
+
+      if (!systemUpload.ok) throw new Error(`System metrics upload failed: ${systemUpload.status}`);
+      if (!weatherUpload.ok) throw new Error(`Weather metrics upload failed: ${weatherUpload.status}`);
+      if (!cryptoUpload.ok) throw new Error(`Crypto metrics upload failed: ${cryptoUpload.status}`);
+
+      await fetchAllMetrics();
+    } catch (err) {
+      console.error('Error uploading metrics:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isUploading) {
+      const intervalId = setInterval(uploadMetrics, 10000);
+      return () => clearInterval(intervalId);
+    }
+  }, [isUploading, uploadMetrics]);
+
+  const validSystemMetrics = systemMetrics.filter(metric => metric.metrics !== null);
+  const latestCpuUsage = validSystemMetrics.find(metric => metric.metrics?.name === 'cpu_usage')?.value || 0;
+  const latestRamUsage = validSystemMetrics.find(metric => metric.metrics?.name === 'ram_usage')?.value || 0;
+  const latestTemp = weatherMetrics.find(metric => metric.metrics?.name === 'weather_temp')?.value || 0;
+  const latestCrypto = cryptoMetrics.find(metric => metric.metrics?.name === 'crypto_price')?.value || 0;
+
+  return (
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <Container>
+        {loading && <Loading />}
+        <HeaderBanner>System Monitoring Dashboard</HeaderBanner>
+        <Navigation>
+          <NavList>
+            <li><Link to="/">Dashboard</Link></li>
+            <li><Link to="/system">System Metrics</Link></li>
+            <li><Link to="/weather">Weather Metrics</Link></li>
+            <li><Link to="/crypto">Crypto Metrics</Link></li>
+          </NavList>
+        </Navigation>
+
+        <Button onClick={() => setIsUploading(!isUploading)} style={{ marginBottom: '20px' }}>
+          {isUploading ? 'Stop Uploading Metrics' : 'Start Uploading Metrics'}
+        </Button>
+
+        {error && (
+          <ErrorContainer>
+            <p>Error: {error}</p>
+            <RetryButton onClick={uploadMetrics}>Retry</RetryButton>
+          </ErrorContainer>
+        )}
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', marginBottom: '20px', flexWrap: 'wrap' }}>
+          <Gauge title="CPU Usage" value={latestCpuUsage} minValue={0} maxValue={100} unit="%" />
+          <Gauge title="RAM Usage" value={latestRamUsage} minValue={0} maxValue={100} unit="%" />
+          <MetricBox title="Temperature" value={latestTemp} unit="°C" icon={<FaTemperatureHigh />} />
+          <MetricBox title="Bitcoin Price" value={latestCrypto} unit="$" icon={<FaBitcoin />} />
+        </div>
+        
+        <Routes>
+          <Route path="/" element={<Table systemMetrics={systemMetrics} weatherMetrics={weatherMetrics} cryptoMetrics={cryptoMetrics} loading={loading} />} />
+          <Route path="/system" element={<Chart metricData={systemMetrics} title="System Metrics" loading={loading} metricType="system" />} />
+          <Route path="/weather" element={<Chart metricData={weatherMetrics} title="Weather Metrics" loading={loading} metricType="weather" />} />
+          <Route path="/crypto" element={<Chart metricData={cryptoMetrics} title="Crypto Metrics" loading={loading} metricType="crypto" />} />
+        </Routes>
+      </Container>
+    </Router>
+  );
+}
+
+export default App;
+</code>
+
+src\config.js:
+<code>
+// Base URL for API calls
+export const apiUrl = 'http://localhost:10000/api'; // Matches your FastAPI backend
+
+// Chart color schemes (unchanged)
+export const chartColors = {
+  system: {
+    cpu_usage: { // Updated to match backend metric name
+      borderColor: 'rgb(255, 99, 132)',
+      backgroundColor: 'rgba(255, 99, 132, 0.5)',
+    },
+    ram_usage: { // Updated to match backend metric name
+      borderColor: 'rgb(53, 162, 235)',
+      backgroundColor: 'rgba(53, 162, 235, 0.5)',
+    }
+  },
+  weather: {
+    weather_temp: { // Updated to match backend metric name
+      borderColor: 'rgb(255, 159, 64)',
+      backgroundColor: 'rgba(255, 159, 64, 0.5)',
+    }
+  },
+  crypto: {
+    crypto_price: { // Updated to match backend metric name
+      borderColor: 'rgb(75, 192, 192)',
+      backgroundColor: 'rgba(75, 192, 192, 0.5)',
+    }
+  }
+};
+
+// External trading sites for crypto (unchanged)
+export const tradingSites = {
+  BTC: 'https://www.binance.com/en/trade/BTC_USDT',
+};
+
+// Gauge configurations (unchanged)
+export const gaugeConfigs = {
+  cpu: {
+    min: 0,
+    max: 100,
+    arc: { width: 0.2, padding: 0.05, cornerRadius: 1 },
+    pointer: { elastic: true },
+    colors: { low: '#4CAF50', medium: '#FFC107', high: '#F44336' }
+  },
+  ram: {
+    min: 0,
+    max: 100,
+    arc: { width: 0.2, padding: 0.05, cornerRadius: 1 },
+    pointer: { elastic: true },
+    colors: { low: '#4CAF50', medium: '#FFC107', high: '#F44336' }
+  },
+  weather: {
+    min: -20,
+    max: 50,
+    arc: { width: 0.2, padding: 0.05, cornerRadius: 1 },
+    pointer: { elastic: true },
+    colors: { arcColors: ['#2196F3', '#4CAF50', '#F44336'] }
+  }
+};
+</code>
+
+src\index.css:
+<code>
+/* frontend/src/index.css */
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #f0f2f5;
+  }
+  
+  code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+      monospace;
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+</code>
+
+src\index.js:
+<code>
+// frontend/src/index.js
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import App from './App';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+</code>
+
+src\components\Chart.jsx:
+<code>
+import React from 'react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  TimeScale
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+import 'chartjs-adapter-date-fns';
+import { Button, MetricHeading } from '../styles/StyledComponents';
+import { chartColors } from '../config';
+import Loading from './Loading';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, TimeScale);
+
+const Chart = ({ metricData, title, loading, metricType }) => {
+  if (loading) return <Loading />;
+  if (!metricData || metricData.length === 0) return <p>No data available for {title}.</p>;
+
+  const metricsGroupedByName = {};
+  metricData.forEach(metric => {
+    const name = metric.metrics ? metric.metrics.name : 'Unknown';
+    if (!metricsGroupedByName[name]) metricsGroupedByName[name] = [];
+    metricsGroupedByName[name].push(metric);
+  });
+
+  const datasets = Object.entries(metricsGroupedByName).map(([metricName, metrics]) => {
+    const colorConfig = chartColors[metricType]?.[metricName] || chartColors[metricType]?.temp || chartColors[metricType]?.price;
+
+    return {
+      label: metricName,
+      data: metrics.map(metric => ({
+        x: new Date(metric.timestamp),
+        y: metric.value
+      })),
+      borderColor: colorConfig.borderColor,
+      backgroundColor: colorConfig.backgroundColor,
+    };
+  });
+
+  datasets.forEach(dataset => dataset.data.sort((a, b) => new Date(a.x) - new Date(b.x)));
+
+  const allValues = metricData.map(metric => metric.value);
+  const minValue = Math.min(...allValues);
+  const maxValue = Math.max(...allValues);
+  const yMin = Math.max(0, minValue - (maxValue - minValue) * 0.1);
+  const yMax = maxValue + (maxValue - minValue) * 0.1;
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: { min: yMin, max: yMax },
+      x: {
+        type: 'time',
+        time: { unit: 'minute', tooltipFormat: 'PP HH:mm', displayFormats: { minute: 'HH:mm' } },
+        title: { display: true, text: 'Time' }
+      },
+    },
+    plugins: {
+      legend: { position: 'top' },
+      title: { display: true, text: title },
+    },
+  };
+
+  return (
+    <div style={{ width: '100%', maxWidth: '100%' }}>
+      <MetricHeading>{title}</MetricHeading>
+      <Button onClick={() => window.location.reload()}>Refresh Data</Button>
+      <div style={{ width: '100%', height: '600px' }}>
+        <Line options={options} data={{ datasets }} />
+      </div>
+    </div>
+  );
+};
+
+export default Chart;
+</code>
+
+src\components\Gauge.jsx:
+<code>
+import React from "react";
+import { GaugeComponent } from "react-gauge-component";
+import styled from "styled-components";
+
+const GaugeWrapper = styled.div`
+  text-align: center;
+  width: 250px; /* Fixed width for uniformity */
+  padding: 20px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+  &:hover { transform: translateY(-5px); box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); }
+  h3 { margin: 0 0 10px 0; color: #333; font-size: 1.2rem; }
+`;
+
+const ValueBox = styled.div`
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #333;
+  background: #fff;
+  padding: 5px 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+`;
+
+const Gauge = ({ title, value, minValue, maxValue, unit }) => {
+  const formatValue = (val) => `${val.toFixed(1)}${unit}`;
+
+  return (
+    <GaugeWrapper>
+      <h3>{title}</h3>
+      <div style={{ position: "relative" }}>
+        <ValueBox>{formatValue(value)}</ValueBox>
+        <GaugeComponent
+          value={value}
+          minValue={minValue}
+          maxValue={maxValue}
+          arc={{ width: 0.2, padding: 0.005, cornerRadius: 1 }}
+          labels={{ valueLabel: { formatTextValue: () => "" }, tickLabels: { type: "inner", ticks: [{ value: minValue }, { value: (maxValue - minValue) / 2 }, { value: maxValue }] } }}
+          pointer={{ elastic: true }}
+        />
+      </div>
+    </GaugeWrapper>
+  );
+};
+
+export default Gauge;
+</code>
+
+src\components\IconMetric.jsx:
+<code>
+import React from 'react';
+import styled from 'styled-components';
+
+const MetricContainer = styled.div`
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+`;
+
+const Title = styled.h3`
+  margin-top: 0;
+  margin-bottom: 10px;
+`;
+
+const Value = styled.div`
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin-top: 15px;
+`;
+
+const IconContainer = styled.div`
+  font-size: 64px;
+  color: ${props => props.color || '#4CAF50'};
+  margin: 10px 0;
+`;
+
+const IconMetric = ({ title, value, icon, unit = '', color }) => {
+  return (
+    <MetricContainer>
+      <Title>{title}</Title>
+      <IconContainer color={color}>
+        {icon}
+      </IconContainer>
+      <Value>{value}{unit}</Value>
+    </MetricContainer>
+  );
+};
+
+export default IconMetric;
+</code>
+
+src\components\Loading.jsx:
+<code>
+/*frontend/src/components/Loading.jsx*/
+import React from 'react';
+import styled from 'styled-components';
+
+const LoadingOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const LoadingSpinner = styled.div`
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #009879;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
+const Loading = () => {
+  return (
+    <LoadingOverlay>
+      <LoadingSpinner />
+    </LoadingOverlay>
+  );
+};
+
+export default Loading;
+</code>
+
+src\components\Table.jsx:
+<code>
+import React from 'react';
+import styled from 'styled-components';
+import { MetricHeading } from '../styles/StyledComponents';
+import Loading from './Loading';
+
+const StyledTable = styled.table`
+  border-collapse: collapse;
+  margin: 25px 0;
+  font-size: 0.9em;
+  font-family: sans-serif;
+  min-width: 400px;
+  width: 100%;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+`;
+
+const TableHead = styled.thead`
+  background-color: #009879;
+  color: #ffffff;
+  text-align: left;
+  position: sticky;
+  top: 0;
+`;
+
+const TableBody = styled.tbody`
+  tr {
+    border-bottom: 1px solid #dddddd;
+    &:nth-of-type(even) { background-color: #f3f3f3; }
+    &:last-of-type { border-bottom: 2px solid #009879; }
+  }
+`;
+
+const TableRow = styled.tr``;
+const TableHeader = styled.th`padding: 12px 15px;`;
+const TableCell = styled.td`padding: 12px 15px;`;
+
+const TabContainer = styled.div`margin-top: 20px;`;
+const TabButtons = styled.div`display: flex; margin-bottom: 10px;`;
+const TabButton = styled.button`
+  padding: 10px 20px;
+  background-color: ${props => props.active ? '#009879' : '#f1f1f1'};
+  color: ${props => props.active ? 'white' : 'black'};
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  &:hover { background-color: ${props => props.active ? '#007965' : '#ddd'}; }
+`;
+
+const PaginationContainer = styled.div`display: flex; justify-content: center; margin-top: 10px;`;
+const PaginationButton = styled.button`
+  background-color: #009879;
+  color: white;
+  border: none;
+  padding: 10px;
+  margin: 0 5px;
+  cursor: pointer;
+  border-radius: 5px;
+  &:disabled { background-color: #cccccc; cursor: not-allowed; }
+`;
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleString();
+};
+
+const Table = ({ systemMetrics, weatherMetrics, cryptoMetrics, loading }) => {
+  const [activeTab, setActiveTab] = React.useState('system');
+  const [currentPage, setCurrentPage] = React.useState(0);
+  const itemsPerPage = 10;
+
+  if (loading) return <Loading />;
+
+  const getPaginatedData = (data) => {
+    if (!Array.isArray(data)) return [];
+    const startIndex = currentPage * itemsPerPage;
+    return data.slice(startIndex, startIndex + itemsPerPage);
+  };
+
+  const renderTable = () => {
+    let data = [];
+    let columns = [];
+
+    switch(activeTab) {
+      case 'system':
+        data = systemMetrics || [];
+        columns = ['Metric', 'Value', 'Timestamp'];
+        break;
+      case 'weather':
+        data = weatherMetrics || [];
+        columns = ['Metric', 'Value (°C)', 'Timestamp'];
+        break;
+      case 'crypto':
+        data = cryptoMetrics || [];
+        columns = ['Metric', 'Value (USD)', 'Timestamp'];
+        break;
+      default:
+        data = [];
+        columns = [];
+    }
+
+    if (!data.length) return <p>No data available for {activeTab} metrics.</p>;
+
+    const paginatedData = getPaginatedData(data);
+    const totalPages = Math.ceil(data.length / itemsPerPage);
+
+    return (
+      <>
+        <StyledTable>
+          <TableHead>
+            <TableRow>
+              {columns.map((column, index) => <TableHeader key={index}>{column}</TableHeader>)}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {paginatedData.map((row, index) => (
+              <TableRow key={index}>
+                <TableCell>{row.metrics ? row.metrics.name : 'Unknown'}</TableCell>
+                <TableCell>{row.value ? row.value.toFixed(2) : 'N/A'}</TableCell>
+                <TableCell>{row.timestamp ? formatDate(row.timestamp) : 'N/A'}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </StyledTable>
+        <PaginationContainer>
+          <PaginationButton onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 0}>Previous</PaginationButton>
+          <span>Page {currentPage + 1} of {totalPages}</span>
+          <PaginationButton onClick={() => setCurrentPage(currentPage + 1)} disabled={currentPage >= totalPages - 1}>Next</PaginationButton>
+        </PaginationContainer>
+      </>
+    );
+  };
+
+  return (
+    <>
+      <MetricHeading>Metrics History</MetricHeading>
+      <TabContainer>
+        <TabButtons>
+          <TabButton active={activeTab === 'system'} onClick={() => setActiveTab('system')}>System Metrics</TabButton>
+          <TabButton active={activeTab === 'weather'} onClick={() => setActiveTab('weather')}>Weather Metrics</TabButton>
+          <TabButton active={activeTab === 'crypto'} onClick={() => setActiveTab('crypto')}>Crypto Metrics</TabButton>
+        </TabButtons>
+        {renderTable()}
+      </TabContainer>
+    </>
+  );
+};
+
+export default Table;
+</code>
+
+src\styles\StyledComponents.jsx:
+<code>
+// frontend/src/styles/StyledComponents.jsx
+import styled from 'styled-components';
+import { Link as RouterLink } from 'react-router-dom';
+
+// Layout components
+export const Container = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+`;
+
+export const HeaderBanner = styled.h1`
+  background-color: #009879;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  margin-top: 0;
+  border-radius: 5px 5px 0 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+`;
+
+export const Navigation = styled.nav`
+  background-color: #f1f1f1;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 0 0 5px 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+`;
+
+export const NavList = styled.ul`
+  list-style-type: none;
+  display: flex;
+  padding: 0;
+  margin: 0;
+  
+  li {
+    margin-right: 20px;
+    
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+`;
+
+export const Link = styled(RouterLink)`
+  text-decoration: none;
+  color: #009879;
+  font-weight: bold;
+  padding: 5px 10px;
+  border-radius: 3px;
+  transition: background-color 0.3s, color 0.3s;
+  
+  &:hover {
+    background-color: #009879;
+    color: white;
+  }
+  
+  &.active {
+    background-color: #009879;
+    color: white;
+  }
+`;
+
+// Card and grid components
+export const GridContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+export const Card = styled.div`
+  background-color: white;
+  border-radius: 5px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+`;
+
+// Button components
+export const Button = styled.button`
+  background-color: ${props => props.isFetching ? '#f44336' : '#009879'};
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin: 10px 0;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: ${props => props.isFetching ? '#d32f2f' : '#007965'};
+  }
+`;
+
+export const RetryButton = styled(Button)`
+  background-color: #f44336;
+  
+  &:hover {
+    background-color: #d32f2f;
+  }
+`;
+
+// Container components
+export const GaugeContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 270px;
+  
+  h2 {
+    margin-top: 0;
+    color: #333;
+  }
+`;
+
+export const ErrorContainer = styled.div`
+  background-color: #ffebee;
+  border-left: 4px solid #f44336;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+  
+  p {
+    color: #d32f2f;
+    margin: 0 0 10px 0;
+  }
+`;
+
+// Typography components
+export const MetricHeading = styled.h2`
+  color: #333;
+  border-bottom: 2px solid #009879;
+  padding-bottom: 10px;
+  margin-top: 30px;
+`;
+</code>
+

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { 
   Container, 
@@ -12,7 +12,7 @@ import {
 } from './styles/StyledComponents';
 import Chart from './components/Chart';
 import Gauge from './components/Gauge';
-import MetricBox from './components/MetricBox'; // New import
+import MetricBox from './components/IconMetric';
 import Table from './components/Table';
 import Loading from './components/Loading';
 import { FaTemperatureHigh, FaBitcoin } from 'react-icons/fa';
@@ -23,7 +23,6 @@ function App() {
   const [cryptoMetrics, setCryptoMetrics] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     fetchAllMetrics();
@@ -58,39 +57,25 @@ function App() {
     }
   };
 
-  const uploadMetrics = useCallback(async () => {
+  const sendCommand = async () => {
     setLoading(true);
     setError(null);
     try {
-      const systemPayload = { device_name: "test", cpu_usage: Math.random() * 100, ram_usage: Math.random() * 100, timestamp: new Date().toISOString() };
-      const weatherPayload = { temperature: Math.random() * 30 + 5 };
-      const cryptoPayload = { value: Math.random() * 50000 + 20000, unit: "USD" };
+      const response = await fetch('/api/command', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ device_name: 'test', command: 'open_task_manager' })
+      });
 
-      const [systemUpload, weatherUpload, cryptoUpload] = await Promise.all([
-        fetch('/api/metrics/system/upload', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(systemPayload) }),
-        fetch('/api/metrics/weather/upload', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(weatherPayload) }),
-        fetch('/api/metrics/crypto/upload', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cryptoPayload) })
-      ]);
-
-      if (!systemUpload.ok) throw new Error(`System metrics upload failed: ${systemUpload.status}`);
-      if (!weatherUpload.ok) throw new Error(`Weather metrics upload failed: ${weatherUpload.status}`);
-      if (!cryptoUpload.ok) throw new Error(`Crypto metrics upload failed: ${cryptoUpload.status}`);
-
-      await fetchAllMetrics();
+      if (!response.ok) throw new Error(`Command failed: ${response.status}`);
+      console.log('Command sent successfully');
     } catch (err) {
-      console.error('Error uploading metrics:', err);
+      console.error('Error sending command:', err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    if (isUploading) {
-      const intervalId = setInterval(uploadMetrics, 10000);
-      return () => clearInterval(intervalId);
-    }
-  }, [isUploading, uploadMetrics]);
+  };
 
   const validSystemMetrics = systemMetrics.filter(metric => metric.metrics !== null);
   const latestCpuUsage = validSystemMetrics.find(metric => metric.metrics?.name === 'cpu_usage')?.value || 0;
@@ -112,18 +97,17 @@ function App() {
           </NavList>
         </Navigation>
 
-        <Button onClick={() => setIsUploading(!isUploading)} style={{ marginBottom: '20px' }}>
-          {isUploading ? 'Stop Uploading Metrics' : 'Start Uploading Metrics'}
+        <Button onClick={sendCommand} style={{ marginBottom: '20px' }}>
+          Open Task Manager
         </Button>
 
         {error && (
           <ErrorContainer>
             <p>Error: {error}</p>
-            <RetryButton onClick={uploadMetrics}>Retry</RetryButton>
+            <RetryButton onClick={fetchAllMetrics}>Retry Fetch</RetryButton>
           </ErrorContainer>
         )}
 
-        {/* Four boxes in a horizontal row */}
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', marginBottom: '20px', flexWrap: 'wrap' }}>
           <Gauge title="CPU Usage" value={latestCpuUsage} minValue={0} maxValue={100} unit="%" />
           <Gauge title="RAM Usage" value={latestRamUsage} minValue={0} maxValue={100} unit="%" />
