@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/SystemMonitor/static/css/main.a4eca520.css",
-    "main.js": "/SystemMonitor/static/js/main.339fed65.js",
+    "main.js": "/SystemMonitor/static/js/main.bfe10897.js",
     "index.html": "/SystemMonitor/index.html",
     "main.a4eca520.css.map": "/SystemMonitor/static/css/main.a4eca520.css.map",
-    "main.339fed65.js.map": "/SystemMonitor/static/js/main.339fed65.js.map"
+    "main.bfe10897.js.map": "/SystemMonitor/static/js/main.bfe10897.js.map"
   },
   "entrypoints": [
     "static/css/main.a4eca520.css",
-    "static/js/main.339fed65.js"
+    "static/js/main.bfe10897.js"
   ]
 }
