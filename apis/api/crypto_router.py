@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from services.crypto_service import store_crypto_metrics, fetch_crypto_metrics
-from utils.logger import log_info
+from apis.services.crypto_service import store_crypto_metrics, fetch_crypto_metrics
+from apis.utils.logger import log_info
 
 router = APIRouter()
 

@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from ..services.system_service import store_local_metrics, fetch_local_metrics
-from utils.logger import log_info
+from apis.services.system_service import store_local_metrics, fetch_local_metrics
+from apis.utils.logger import log_info
 
 router = APIRouter()
 

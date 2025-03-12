@@ -1,8 +1,8 @@
-from ..database.db_connection import db_client
+from apis.database.db_connection import db_client
 from datetime import datetime, timezone
-from .device_repository import DeviceRepository
-from utils.cache import cache
-from utils.logger import log_info
+from apis.database.repositories.device_repository import DeviceRepository
+from apis.utils.cache import cache
+from apis.utils.logger import log_info
 
 class MetricRepository:
     def get_or_create_metric_id(self, metric_name, unit=None):

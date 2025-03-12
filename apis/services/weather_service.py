@@ -1,7 +1,7 @@
-from ..database.repositories.metric_repository import MetricRepository
-from utils.logger import log_info
-from utils.cache import cache
-from utils.cache_decorators import cached
+from apis.database.repositories.metric_repository import MetricRepository
+from apis.utils.logger import log_info
+from apis.utils.cache import cache
+from apis.utils.cache_decorators import cached
 
 def store_weather_metrics(temperature: float):
     metric_repo = MetricRepository()

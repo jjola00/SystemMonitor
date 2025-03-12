@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from services.weather_service import store_weather_metrics, fetch_weather_metrics
-from utils.logger import log_info
+from apis.services.weather_service import store_weather_metrics, fetch_weather_metrics
+from apis.utils.logger import log_info
 
 router = APIRouter()
 

@@ -1,4 +1,4 @@
-from ..database.db_connection import db_client
+from apis.database.db_connection import db_client
 from datetime import datetime, timezone
 
 class DeviceRepository:
@@ -24,7 +24,6 @@ class DeviceRepository:
         }).execute()
 
     def fetch_and_clear_device_command(self, device_id: str):
-        # Fetch the oldest unprocessed command and delete it
         response = self.db_client.table("device_commands") \
             .select("id, command") \
             .eq("device_id", device_id) \
@@ -34,7 +33,6 @@ class DeviceRepository:
         if response.data:
             command_id = response.data[0]["id"]
             command = response.data[0]["command"]
-            # Delete the command after fetching it
             self.db_client.table("device_commands") \
                 .delete() \
                 .eq("id", command_id) \

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
-from ..database.db_connection import db_client
-from ..database.repositories.device_repository import DeviceRepository
-from utils.logger import log_info, log_error
+from apis.database.db_connection import db_client
+from apis.database.repositories.device_repository import DeviceRepository
+from apis.utils.logger import log_info
 
 router = APIRouter()
 
@@ -21,17 +21,12 @@ def send_command_to_device(request: CommandRequest, device_repo: DeviceRepositor
     device_id = device_repo.get_or_create_device_id(device_name)
     if not device_id:
         raise HTTPException(status_code=404, detail="Device not found")
-    try:
-        device_repo.store_device_command(device_id, command)
-        log_info(f"Command '{command}' stored for device_id: {device_id}")
-    except Exception as e:
-        log_error(f"Failed to store command: {e}")
-        raise HTTPException(status_code=500, detail="Failed to store command")
+    device_repo.store_device_command(device_id, command)
     return {"status": "success", "message": f"Command '{command}' sent to device '{device_name}'"}
 
 @router.get("/command/{device_name}")
 def get_device_command(device_name: str, device_repo: DeviceRepository = Depends(get_device_repo)):
-    log_info(f"Fetching latest command for device '{device_name}'")
+    log_info(f"Fetching next command for device '{device_name}'")
     device_id = device_repo.get_or_create_device_id(device_name)
     if not device_id:
         raise HTTPException(status_code=404, detail="Device not found")
