@@ -1,4 +1,4 @@
-from database.db_connection import db_client
+from ..database.db_connection import db_client
 from datetime import datetime, timezone
 
 class DeviceRepository:
