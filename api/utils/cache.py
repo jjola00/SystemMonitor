@@ -26,3 +26,4 @@ class Cache:
         with self._lock:
             if key in self._cache:
                 del self._cache[key]
+cache = Cache()
