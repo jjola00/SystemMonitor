@@ -14,6 +14,7 @@ import Chart from './components/Chart';
 import Gauge from './components/Gauge';
 import Table from './components/Table';
 import Loading from './components/Loading';
+import { FaTemperatureHigh, FaBitcoin } from 'react-icons/fa'; // Add icons
 
 function App() {
   const [systemMetrics, setSystemMetrics] = useState([]);
@@ -32,7 +33,7 @@ function App() {
     setError(null);
     try {
       const [systemResponse, weatherResponse, cryptoResponse] = await Promise.all([
-        fetch('/api/metrics/system?limit=10'), // Using proxy
+        fetch('/api/metrics/system?limit=10'),
         fetch('/api/metrics/weather?limit=10'),
         fetch('/api/metrics/crypto?limit=10')
       ]);
@@ -44,10 +45,6 @@ function App() {
       const systemData = await systemResponse.json();
       const weatherData = await weatherResponse.json();
       const cryptoData = await cryptoResponse.json();
-
-      console.log('System data:', systemData);
-      console.log('Weather data:', weatherData);
-      console.log('Crypto data:', cryptoData);
 
       setSystemMetrics(Array.isArray(systemData) ? systemData : []);
       setWeatherMetrics(Array.isArray(weatherData) ? weatherData : []);
@@ -63,33 +60,15 @@ function App() {
   const uploadMetrics = useCallback(async () => {
     setLoading(true);
     setError(null);
-
     try {
-      const systemPayload = {
-        device_name: "test",
-        cpu_usage: Math.random() * 100, // Simulate data; replace with real collector data later
-        ram_usage: Math.random() * 100,
-        timestamp: new Date().toISOString()
-      };
-      const weatherPayload = { temperature: Math.random() * 30 + 5 }; // Simulate 5-35°C
-      const cryptoPayload = { value: Math.random() * 50000 + 20000, unit: "USD" }; // Simulate $20k-$70k
+      const systemPayload = { device_name: "test", cpu_usage: Math.random() * 100, ram_usage: Math.random() * 100, timestamp: new Date().toISOString() };
+      const weatherPayload = { temperature: Math.random() * 30 + 5 };
+      const cryptoPayload = { value: Math.random() * 50000 + 20000, unit: "USD" };
 
       const [systemUpload, weatherUpload, cryptoUpload] = await Promise.all([
-        fetch('/api/metrics/system/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(systemPayload)
-        }),
-        fetch('/api/metrics/weather/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(weatherPayload)
-        }),
-        fetch('/api/metrics/crypto/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(cryptoPayload)
-        })
+        fetch('/api/metrics/system/upload', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(systemPayload) }),
+        fetch('/api/metrics/weather/upload', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(weatherPayload) }),
+        fetch('/api/metrics/crypto/upload', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cryptoPayload) })
       ]);
 
       if (!systemUpload.ok) throw new Error(`System metrics upload failed: ${systemUpload.status}`);
@@ -115,6 +94,8 @@ function App() {
   const validSystemMetrics = systemMetrics.filter(metric => metric.metrics !== null);
   const latestCpuUsage = validSystemMetrics.find(metric => metric.metrics?.name === 'cpu_usage')?.value || 0;
   const latestRamUsage = validSystemMetrics.find(metric => metric.metrics?.name === 'ram_usage')?.value || 0;
+  const latestTemp = weatherMetrics.find(metric => metric.metrics?.name === 'weather_temp')?.value || 0;
+  const latestCrypto = cryptoMetrics.find(metric => metric.metrics?.name === 'crypto_price')?.value || 0;
 
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
@@ -130,10 +111,7 @@ function App() {
           </NavList>
         </Navigation>
 
-        <Button 
-          onClick={() => setIsUploading(!isUploading)} 
-          style={{ marginBottom: '20px' }}
-        >
+        <Button onClick={() => setIsUploading(!isUploading)} style={{ marginBottom: '20px' }}>
           {isUploading ? 'Stop Uploading Metrics' : 'Start Uploading Metrics'}
         </Button>
 
@@ -144,56 +122,19 @@ function App() {
           </ErrorContainer>
         )}
 
-        <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-          <Gauge 
-            title="CPU Usage" 
-            value={latestCpuUsage} 
-            minValue={0} 
-            maxValue={100} 
-            unit="%"
-          />
-          <Gauge 
-            title="RAM Usage" 
-            value={latestRamUsage} 
-            minValue={0} 
-            maxValue={100} 
-            unit="%"
-          />
+        {/* Four gauges in a horizontal row */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', marginBottom: '20px', flexWrap: 'wrap' }}>
+          <Gauge title="CPU Usage" value={latestCpuUsage} minValue={0} maxValue={100} unit="%" icon={<span>💻</span>} />
+          <Gauge title="RAM Usage" value={latestRamUsage} minValue={0} maxValue={100} unit="%" icon={<span>🧠</span>} />
+          <Gauge title="Temperature" value={latestTemp} minValue={-20} maxValue={50} unit="°C" icon={<FaTemperatureHigh />} />
+          <Gauge title="Bitcoin Price" value={latestCrypto} minValue={20000} maxValue={70000} unit="$" icon={<FaBitcoin />} />
         </div>
         
         <Routes>
-          <Route path="/" element={
-            <Table 
-              systemMetrics={systemMetrics}
-              weatherMetrics={weatherMetrics}
-              cryptoMetrics={cryptoMetrics}
-              loading={loading}
-            />
-          } />
-          <Route path="/system" element={
-            <Chart 
-              metricData={systemMetrics} 
-              title="System Metrics" 
-              loading={loading}
-              metricType="system"
-            />
-          } />
-          <Route path="/weather" element={
-            <Chart 
-              metricData={weatherMetrics} 
-              title="Weather Metrics" 
-              loading={loading}
-              metricType="weather"
-            />
-          } />
-          <Route path="/crypto" element={
-            <Chart 
-              metricData={cryptoMetrics} 
-              title="Crypto Metrics" 
-              loading={loading}
-              metricType="crypto"
-            />
-          } />
+          <Route path="/" element={<Table systemMetrics={systemMetrics} weatherMetrics={weatherMetrics} cryptoMetrics={cryptoMetrics} loading={loading} />} />
+          <Route path="/system" element={<Chart metricData={systemMetrics} title="System Metrics" loading={loading} metricType="system" />} />
+          <Route path="/weather" element={<Chart metricData={weatherMetrics} title="Weather Metrics" loading={loading} metricType="weather" />} />
+          <Route path="/crypto" element={<Chart metricData={cryptoMetrics} title="Crypto Metrics" loading={loading} metricType="crypto" />} />
         </Routes>
       </Container>
     </Router>

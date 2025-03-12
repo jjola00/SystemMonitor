@@ -8,7 +8,7 @@ venv/
 env/
 .venv/
 
-/node_modules
+frontend/node_modules
 
 # misc
 .env
