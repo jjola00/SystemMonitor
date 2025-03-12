@@ -1,5 +1,5 @@
 // Base URL for API calls
-export const apiUrl = 'http://localhost:10000/api'; // Matches your FastAPI backend
+export const apiUrl = 'https://my-fastapi-backend-miau.onrender.com/api'; // Matches your FastAPI backend
 
 // Chart color schemes (unchanged)
 export const chartColors = {

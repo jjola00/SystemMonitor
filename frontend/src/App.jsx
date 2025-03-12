@@ -1,21 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { 
-  Container, 
-  HeaderBanner, 
-  Navigation, 
-  NavList, 
-  Link, 
-  ErrorContainer,
-  RetryButton,
-  Button
-} from './styles/StyledComponents';
+import { Container, HeaderBanner, Navigation, NavList, Link, ErrorContainer, RetryButton, Button } from './styles/StyledComponents';
 import Chart from './components/Chart';
 import Gauge from './components/Gauge';
 import MetricBox from './components/IconMetric';
 import Table from './components/Table';
 import Loading from './components/Loading';
 import { FaTemperatureHigh, FaBitcoin } from 'react-icons/fa';
+import { apiUrl } from './config';  // Import apiUrl
 
 function App() {
   const [systemMetrics, setSystemMetrics] = useState([]);
@@ -33,9 +25,9 @@ function App() {
     setError(null);
     try {
       const [systemResponse, weatherResponse, cryptoResponse] = await Promise.all([
-        fetch('/api/metrics/system?limit=10'),
-        fetch('/api/metrics/weather?limit=10'),
-        fetch('/api/metrics/crypto?limit=10')
+        fetch(`${apiUrl}/metrics/system?limit=10`),
+        fetch(`${apiUrl}/metrics/weather?limit=10`),
+        fetch(`${apiUrl}/metrics/crypto?limit=10`)
       ]);
 
       if (!systemResponse.ok) throw new Error(`System metrics fetch failed: ${systemResponse.status}`);
@@ -61,12 +53,11 @@ function App() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/command', {
+      const response = await fetch(`${apiUrl}/command`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ device_name: 'test', command: 'open_task_manager' })
       });
-
       if (!response.ok) throw new Error(`Command failed: ${response.status}`);
       console.log('Command sent successfully');
     } catch (err) {
