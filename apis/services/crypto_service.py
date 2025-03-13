@@ -11,7 +11,7 @@ def store_crypto_metrics(crypto_price: dict):
     return {"status": "success"}
 
 @cached(ttl_seconds=120, key_prefix="crypto_metrics")
-def fetch_crypto_metrics(limit=10):
+def fetch_crypto_metrics(limit=30):  # Changed from 10 to 30
     log_info(f"Cache miss - fetching latest {limit} crypto metrics from database.")
     metric_repo = MetricRepository()
     return metric_repo.fetch_metrics(["crypto_price"], limit)

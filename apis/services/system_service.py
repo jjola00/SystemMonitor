@@ -14,7 +14,7 @@ def store_local_metrics(metrics: dict):
     return {"status": "success"}
 
 @cached(ttl_seconds=60, key_prefix="local_metrics")
-def fetch_local_metrics(limit=10):
+def fetch_local_metrics(limit=30):  # Changed from 10 to 30
     log_info(f"Cache miss - fetching latest {limit} local metrics from database.")
     metric_repo = MetricRepository()
     return metric_repo.fetch_metrics(["cpu_usage", "ram_usage"], limit)

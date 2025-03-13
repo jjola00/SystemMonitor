@@ -25,9 +25,9 @@ function App() {
     setError(null);
     try {
       const [systemResponse, weatherResponse, cryptoResponse] = await Promise.all([
-        fetch(`${apiUrl}/metrics/system?limit=10`),
-        fetch(`${apiUrl}/metrics/weather?limit=10`),
-        fetch(`${apiUrl}/metrics/crypto?limit=10`)
+        fetch(`${apiUrl}/metrics/system?limit=30`),
+        fetch(`${apiUrl}/metrics/weather?limit=30`),
+        fetch(`${apiUrl}/metrics/crypto?limit=30`)
       ]);
 
       if (!systemResponse.ok) throw new Error(`System metrics fetch failed: ${systemResponse.status}`);
