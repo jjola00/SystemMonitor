@@ -1,6 +1,6 @@
 import psutil
 from datetime import datetime, timezone
-from uapis.tils.logger import log_info, log_error
+from utils.logger import log_info, log_error
 
 def collect_system_metrics():
     log_info("Collecting system metrics...")

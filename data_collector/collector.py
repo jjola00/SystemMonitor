@@ -3,8 +3,8 @@ import time
 import os
 from collectors.system_collector import collect_system_metrics
 from collectors.third_party_collector import fetch_weather_metric, fetch_crypto_metric
-from apis.utils.logger import log_info, log_error
-from apis.config.config import Config
+from utils.logger import log_info, log_error
+from config.config import Config
 
 CLOUD_API_URL = "http://localhost:10000/api"
 DEVICE_NAME = "test"
