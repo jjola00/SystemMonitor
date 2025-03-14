@@ -11,7 +11,7 @@ def store_weather_metrics(temperature: float):
     return {"status": "success"}
 
 @cached(ttl_seconds=300, key_prefix="weather_metrics")
-def fetch_weather_metrics(limit=30):  # Changed from 10 to 30
+def fetch_weather_metrics(limit=30):  
     log_info(f"Cache miss - fetching latest {limit} weather metrics from database.")
     metric_repo = MetricRepository()
     return metric_repo.fetch_metrics(["weather_temp"], limit)
