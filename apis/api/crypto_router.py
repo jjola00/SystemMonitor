@@ -9,12 +9,12 @@ class CryptoMetrics(BaseModel):
     value: float
     unit: str
 
-@router.post("/metrics/crypto/upload")
+@router.post("/metrics/crypto/upload") #aggregator
 def upload_crypto_metrics(metrics: CryptoMetrics):
     log_info("Receiving crypto metrics from collector.")
     return store_crypto_metrics(metrics.dict())
 
-@router.get("/metrics/crypto")
+@router.get("/metrics/crypto") #reporter
 def get_crypto_metrics(limit: int = 10):
     log_info(f"Fetching latest {limit} crypto metrics.")
     return fetch_crypto_metrics(limit)
